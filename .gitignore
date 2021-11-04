@@ -1,0 +1,11 @@
+backups/
+HexaCord/
+logs/
+PyMcServerManager/
+Server1/
+Server2/
+Vanilla1.16/
+zscripts2/
+
+commands.txt
+*.pyc
