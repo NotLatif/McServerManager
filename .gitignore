@@ -6,6 +6,7 @@ Server1/
 Server2/
 Vanilla1.16/
 zscripts2/
+zscriptsBackup/
 
 commands.txt
 *.pyc
