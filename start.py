@@ -730,7 +730,7 @@ def start(server, port=None):#I hope it works
 						port = yPort
 						break
 				if port == starterP:
-					mPrint('WARN', f'Nessun server trovato su 6 porte a partire da {P}')
+					mPrint('WARN', f'Nessun server trovato su 6 porte a partire da {starterP}')
 					return 0
 
 	mPrint('WORK', f'building server path for server id <{str(server)}>')
@@ -1074,7 +1074,7 @@ def backList(server = -1):
 			if online[server][0] in back[i][2]:
 				rPrint('|')
 				rPrint(f'{Fore.MAGENTA}|->{back[i][1]}{Fore.RESET} (ID: {back[i][0]})')
-				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {online[server][0]}')
+				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({i})-> {online[server][0]}')
 	rPrint(f'{Fore.GREEN}|-------------------\n8{Fore.RESET}')
 
 
