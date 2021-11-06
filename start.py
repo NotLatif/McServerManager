@@ -21,7 +21,7 @@ try:
 except ModuleNotFoundError:
 	print('FATAL \n' + str(traceback.format_exc()))
 	input('Premere invio per interrompere')
-
+#testtt
 init()
 print(Style.BRIGHT)
 
