@@ -303,7 +303,7 @@ def batFixer(server, xmx = None):
 	if xmx == None:
 		xmx = config['-Xmx']
 
-	s = ()
+	s = dirGrab()
 
 	placeholder = 'zscripts\\placeholder.bat'
 	try:
@@ -948,11 +948,11 @@ def restart(server = None):#not yet
 
 def txtToId(txt):
 	mPrint('FUNC', f'txtToId({txt})')
-	i = 0
+	i = 0 
 	for x in dirGrab():
-		if online[i][0] == txt:
-			return i
+		if x == txt:
 			mPrint('WORK', f'returning: {i}')
+			return i
 		i+=1
 	return -1
 
@@ -1641,7 +1641,6 @@ def main(run):
 		else:
 			pass #Print help
 
-
 	elif command[0] == 'ls':
 		if len(command) == 1:
 			ls()
@@ -1654,7 +1653,7 @@ def main(run):
 		else:
 			mPrint('WARN', 'Comando non riconosciuto.')
 
-	elif command[0] == 'dev':
+	elif command[0] == 'dev': #Works in IDLE shell
 		mPrint('DEV', 'Entered IDLE dev mode.')
 		return -2
 
@@ -1666,14 +1665,13 @@ def main(run):
 
 	return 0
 
-#Mainloop
+# -------- MAINLOOP --------
 #Commands: start, sync, ip | server-ip, port | server-port, rcon, log, end, h, ls; online, set
 
 crashcount = 0
 autoBack = False
 seconds = 0 
 while run:
-
 	maxCrashes = 4
 	try:
 		resp = main(run)
@@ -1683,7 +1681,6 @@ while run:
 			autoBack = True
 			startTime = time.time()
 			seconds = int(resp)*60
-
 		elif resp == 0 and autoBack == True:
 			autoBack = False
 			mPrint('INFO', 'Il backup automatico è stato disattivato')
