@@ -409,17 +409,16 @@ def workChangeProperties(key, name):#it worked on my machine
 	
 	mPrint('DEV', f'name:{name}')
 
+	#parsing
 	if key == 'ip':
-		jkey = 'server-ip'
-		key = 'server-ip'
+		key ='server-ip'
 	elif key == 'port':
-		jkey = 'server-port'
-		key = 'server-port'
+		key ='server-port'
 	elif key == 'ram' or key == 'xmx':
-		jkey = '-Xmx'
+		key = '-Xmx'
 
-	else:
-		jkey = key
+	else: #trusting changeProperties() parsing
+		key = key
 
 	if key == '-Xmx':
 		for i in range(len(online)):
@@ -430,9 +429,9 @@ def workChangeProperties(key, name):#it worked on my machine
 		temp_cfg['server-port'] = config['server-port']
 		mPrint('INFO', 'changed ip and port to: ' + config['server-ip'] + ":" + str(config['server-port']) + ' for server: '+str(name))
 	else:
-		temp_cfg[str(jkey)] = config[str(key)]
+		temp_cfg[str(key)] = config[str(key)]
 		mPrint('INFO', 'server: '+ str(name))
-		mPrint('INFO', 'changed key: ' + jkey + ", to value:" + temp_cfg[jkey])
+		mPrint('INFO', 'changed key: ' + key + ", to value:" + temp_cfg[key])
 	temp_cfg.write()
 
 	#chiama remQuote per togliere i '"'
