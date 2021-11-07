@@ -242,17 +242,18 @@ def loadServers():
 	s = dirGrab()
 	x = 0
 	for server in s:
+		#proprietà dei server.properties
 		sPort = getProperty('server-port', server)
 		rPort = getProperty('rcon.port', server)
-		if sPort < 0:
-			mPrint('ERROR', f'valore server-port sconosciuto nel server: {server}')
-			mPrint('INFO', 'porto la server-port a 25565.')
+		if sPort < 0:	# FIXME (CHECKME) [non dovrei prendere dall'ini??? perché questi valori fissi??]
+			mPrint('ERROR', f'valore server-port non valido nel server: {server}')
+			mPrint('INFO', 'porto la server-port a 25565.') ##Ma perché proprio 25565??
 			sPort = 25565
 		if sPort >= 25575:
 			mPrint('WARN', f'server: {server} ha una porta >= a 25575.')
 			mPrint('INFO', 'per evitare problemi porto la server-port a 25565.')
 			sPort = 25565
-		online[x] = [str(server), 0, sPort, rPort]
+		online[x] = [str(server), 0, sPort, rPort] #technically offline but ok 
 		x += 1
 	mPrint('INFO', f'Loaded {x} servers.')
 
@@ -332,7 +333,7 @@ def batFixer(server, xmx = None):
 		i = server
 		batter(i, batCopy, server, s)
 
-def getProperty(key, server):
+def getProperty(key, server): #pull and return info from server.properties files
 	mPrint('FUNC', f'getProperty({key}, {server})')
 	key = str(key)
 	path = server + '\\server.properties'
@@ -437,22 +438,24 @@ def workChangeProperties(key, name):#it worked on my machine
 	#chiama remQuote per togliere i '"'
 	remQuote(name)
 			
-def changeProperties(key, server=-1, syncRcon=True):#maybe it works
+def changeProperties(key, server=-1, syncRcon=True):#key = property name
 	mPrint('FUNC', f'changeProperties({key}, {server})')
-	dirs = dirGrab()
 	mPrint('INFO', 'key: ' + str(key))
+
+	dirs = dirGrab()
+	#initial parse
 	if (key != 'ip' and key != 'server-ip' and key != 'port' and key != 'server-port' and key != 'all' and key != 'ram' and key != 'xmx' and key != '-Xmx'):
 		mPrint('ERROR', 'key error.')
 		return 69
 
 	if server < 0: #cambia tutti i server
-		mPrint('DEV', 'a')
+		mPrint('DEV', 'All servers')
 		for name in dirs:
 			workChangeProperties(key, name)
 			if syncRcon:
 				rconSync()
 	else: #cambia il server scelto
-		mPrint('DEV', 'b')
+		mPrint('DEV', f'Server {server}')
 		workChangeProperties(key, dirs[int(server)])
 		if syncRcon:
 			rconSync()
@@ -535,7 +538,7 @@ def isServerAlive(ip, port):#works
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		return s.connect_ex((ip, port)) == 0
 
-def dirGrab(isStart = True): #works but can be updated
+def dirGrab(isStart = True): #Returns a list containing server folders in alphabetical order ##works but can be updated
 	mPrint('FUNC', f'dirGrab({isStart})')
 	#Ottengo una lista raw delle cartelle in questa directory
 	r_dirs = glob(os.path.join('.', "*", ""))
