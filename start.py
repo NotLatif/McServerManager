@@ -662,12 +662,17 @@ def start(server, port=None):#I hope it works
 	server = str(server)
 
 	#Preparation
-	if server.isnumeric():
-		isId = True
-		mPrint('DEV', 'found numeric server id, isId = ' + str(isId))
+	try: #If server is literal ('Server1') change to id, else cast int jtbs
+		server = int(server)
+	except ValueError:
+		mPrint('WORK', 'Server is literal, scanning for id')
+		server = txtToId(server)
+		
+	if server != -1:
+		mPrint('WORK', 'found server id: ' + str(server))
 	else:
-		isId = False
-		mPrint('DEV', 'found literal server id, isId = ' + str(isId))
+		mPrint('ERROR', 'Server non trovato :(')
+		return -1
 
 	if port is None:
 		port = int(config['server-port'])
@@ -676,29 +681,8 @@ def start(server, port=None):#I hope it works
 		port = int(port)
 		startChangeProperties('server-port', port, server)
 
-	
-
-	#Start
 	s = dirGrab()
-	if isId:
-		server = int(server)
-		found = True
-	else:
-		mPrint('WORK', 'Server is literal, scanning for id')
-		for x in range(len(s)):
-			mPrint('DEV', f'x = {x}; s[x] = {s[x]}; server = {server}')
-			if s[x] == str(server):
-				server = int(x)
-				mPrint('WORK', 'found server id: ' + str(server))
-				found = True
-				break
-			else:
-				found = False
-
-	if not found:
-		mPrint('ERROR', 'Server non trovato :(')
-		return -1
-
+	#Start
 	if server >= len(online):
 		mPrint('WARN', f'Il server {server} non esiste, ho rilevato solo {len(online)} server')
 		mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
@@ -709,13 +693,13 @@ def start(server, port=None):#I hope it works
 			mPrint('INFO', 'Controllo lo stato del server...')
 			if isServerAlive(config['server-ip'], port):
 				mPrint('WARN', 'Server già partito, annullo il comando')
-				mPrint('WARN', 'Un listener è stato trovato attivo sulla porta ' + config['server-ip'] +':'+str(port))
+				mPrint('WARN', 'La porta ' + config['server-ip'] +':'+str(port) + ' è attualmente occupata. Impossibile startare un server')
 				return -1
 			else:
 				mPrint('INFO', f'Server segnalato online in realtà è offline, aggiorno lo stato per il server {server}')
 				online[i][1] = 0
 
-		if port in online[i] and online[i][1] != 0: #Controllo se un server con la stessa porta è online
+		if port in online[i] and online[i][1] != 0: #Controllo se la porta è libera
 			mPrint('INFO', 'Controllo lo stato del server...')
 			if isServerAlive(config['server-ip'], port):
 				mPrint('WARN', f'Esiste un server online su questa porta: {port}')

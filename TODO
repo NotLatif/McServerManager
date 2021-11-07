@@ -28,6 +28,7 @@ AT startup:
 #automate first server start
 #hot add server
 check if port is forwarded at startup
+what if dirs change runtime?
 
 #  -------------------------- BACKUP RELATED --------------------------  #
 
@@ -44,10 +45,9 @@ restorebackup()
 	LOOK THROUGH EVERY FUCKING COMMAND (testing lmao)
 
 
-306 () ?????
 248
 250
-949
+
 686 (change block with server to id function) in start() #Start
 1476 idToBack() does not exist
 1580
