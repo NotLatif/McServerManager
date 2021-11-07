@@ -300,6 +300,7 @@ def batter(i, batCopy, server, s):
 
 def batFixer(server, xmx = None):
 	mPrint('FUNC', f'batFixer({server}, {xmx})')
+	#gets raw data and make raw bat file (and sends it to batter())
 	if xmx == None:
 		xmx = config['-Xmx']
 
@@ -514,9 +515,7 @@ def modRam(xmx, server=-1):
 
 	server = int(server)
 	
-	if 'G' in str(xmx) or 'M' in str(xmx):
-		ok = True
-	else:
+	if not('G' in str(xmx) or 'M' in str(xmx)):
 		mPrint('ERROR', 'Invalid -Xmx format, \'xmx help\'')
 		return -1
 
@@ -1054,7 +1053,7 @@ def abort(method):
 	mPrint('FUNC', f'abort({method})')
 	if method == '-f':
 		mPrint('You have 5 seconds to save everything')
-		time.sleep(6)
+		time.sleep(5)
 		os.system('shutdown /s /t 1')
 	elif method == '-b':
 		backup(-1)
@@ -1372,50 +1371,6 @@ def inHelp(menu):
 	else:
 		rPrint('Aiuti non trovati per questo comando...')
 
-'''TODO
-configobbj ??????????? do it properly bro requirements.txt
-keyboard
-mcrcon
-colorama
-requests
-
-Fix de #include mess do it properly (this matters <<<)
-Properties is overengineered FIX ASAP JUST DO .py (But i guess it does not matter)
-
-#  -------------------------- Structures --------------------------  #
-Backups dict:
-	back{id: [aaId, date, [IDs]} 
-    	        0     1    2[]  
-
-Dict of online server:
-	online = {onlineId: ['Server', state, port, rcon]}  
-	state can be: 0:offline, 1:online, 2:restarting
-
-#  --------------------------------------------------------------------  #
-
-#TODO
-
-AT startup:
-	Check if servers are on (fast or threads?)
-
-#print something randomly in server if online
-#automate first server start
-#hot add server
-
-#  -------------------------- BACKUP RELATED --------------------------  #
-
-#autobackup: [time (minutes)]
-
-#  --------------------------------------------------------------------  #
-
-
-
-#reminders
-	add everything in help
-		set command
-	LOOK THROUGH EVERY FUCKING COMMAND (testing lmao)
-'''
-
 
 #runtime start#
 
@@ -1469,14 +1424,14 @@ rPrint('| Benvenuto nel server starter!           |')
 rPrint('| - Premi \'h\' per la lista dei comandi    |')
 rPrint('| Creato da Latif\u2122 Co., Ltd.              |')
 
-
+#cmds: bottom of function
 def main(run):
 	global log
 	print('>', end=' ')
 	command = input().split(' ')
 	logToFile('> ' + ' '.join(command))
 
-	if len(command) == 2:#
+	if len(command) == 2:# <cmd> help
 		if command[1] == 'help':
 			inHelp(command[0])
 			return 0
@@ -1518,7 +1473,7 @@ def main(run):
 					backList()
 			else:
 				try:
-					idToBack = int(command[1]) 
+					#idToBack() = int(command[1]) 
 					backup(int(command[1]))
 				except ValueError:
 					mPrint('ERROR', 'Se hai provato ad inserire un ID, usane uno numerico.')
@@ -1559,7 +1514,7 @@ def main(run):
 			if input().lower() == 'y':
 				changeProperties('all')
 				
-		elif 2 == len(command): #Sync parameter
+		elif len(command) == 2: #Sync parameter
 			try:
 				tmp = changeProperties(command[1])
 				if tmp == 69:
@@ -1568,7 +1523,7 @@ def main(run):
 				mPrint('ERROR', ' La forma del comando è sbagliata??')
 				prtStackTrace()
 
-		elif 3 == len(command): #Sync parameter server-id
+		elif len(command) == 3: #Sync parameter server-id
 			try:
 				tmp = changeProperties(command[1], int(command[2]))
 				if tmp == 69:
@@ -1613,19 +1568,16 @@ def main(run):
 				rconSync()
 		except IndexError:
 			mPrint('INFO', f'rcon.port: {rconPort}, rcon.password: {rconPsw}')
-			mPrint('WARN', 'DO NOT MANUALLY CHANGE THEM.')
+			mPrint('WARN', 'DO NOT MANUALLY CHANGE THEM.') #wtfym fix this FIXME
 
 	elif command[0] == 'log':
-		if log == True:
-			log = False
-			updateConfig('log', log)
-		else:
-			log = True
-			updateConfig('log', log)
+		log = False if log else True
+		updateConfig('log', log)
+
 		mPrint('INFO', 'log is now: ' + str(log))
 
 	elif command[0] == 'end':
-		#CHECK ONLINE
+		#TODO CHECK ONLINE
 		crash()
 
 	elif command[0] == 'h' or command[0] == 'help' or command[0] == '?':
@@ -1664,6 +1616,25 @@ def main(run):
 		mPrint('INFO', 'Bye bye.')
 
 	return 0
+# start <serverID> [port]	//serverID can be string
+# stop <serverID> [port]	//serverID can be string
+# restart <serverID>		//serverID can be string
+# backup/back [cmd]			//cmd: serverID / all / online / list [serverID]
+# delbackup <serverID> 		//ADD OPTIONS PLS
+# autobackup [time (minutes)] (folder auto\id) <-replace latest //REVIEW
+# set <serverID> <status>	//manually sets serverID to status (on/off line) USE check INSTEAD only test purposes
+# check <serverID>			//pings server port to check if it's on
+# sync [setting] [serverID]	//without params syncs everything to every server
+# abort <-f/-b>				//-f: force -b: backup
+# ip/server-ip [newIP]		//if no params: shows IP; else: sets newIP 
+# port/server-port [newPort]//if no params: shows port; else: sets newPort
+# rcon [-s]					//shows rcon params; -s: syncs rcon for some reason
+# log						//Switches script log on/off
+# end						//stops script
+# h/help					//help
+# xmx/ram [ram] <serverID>	//shows / changes xmx value; ex syntax: xmx 4G 2 | xmx 1024M
+# ls [-f / -o / -u]			//-f: checks if servers are still online and lists them / -o lists allegedly online servers / -u reloads server list
+# dev						//exits sctipt so you can call functions and shit (IDLE shell)
 
 # -------- MAINLOOP --------
 #Commands: start, sync, ip | server-ip, port | server-port, rcon, log, end, h, ls; online, set

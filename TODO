@@ -1,0 +1,62 @@
+configobbj ??????????? do it properly bro requirements.txt
+keyboard
+mcrcon
+colorama
+requests
+
+Fix de #include mess do it properly (this matters <<<)
+Properties is overengineered FIX ASAP JUST DO .py (But i guess it does not matter)
+
+#  -------------------------- Structures --------------------------  #
+Backups dict:
+	back{id: [aaId, date, [IDs]} 
+    	        0     1    2[]  
+
+Dict of online server:
+	online = {onlineId: ['Server', state, port, rcon]}  
+	state can be: 0:offline, 1:online, 2:restarting
+
+#  --------------------------------------------------------------------  #
+
+#TODO
+
+AT startup:
+	Check if servers are on (fast or threads?)
+    timeout?
+
+#print something randomly in server if online
+#automate first server start
+#hot add server
+check if port is forwarded at startup
+
+#  -------------------------- BACKUP RELATED --------------------------  #
+
+#autobackup: [time (minutes)]
+restorebackup()
+
+#  --------------------------------------------------------------------  #
+
+
+
+#reminders
+	add everything in help
+		set command
+	LOOK THROUGH EVERY FUCKING COMMAND (testing lmao)
+
+
+306 () ?????
+248
+250
+949
+686 (change block with server to id function) in start() #Start
+1476 idToBack() does not exist
+1580
+
+batter():
+	I file che crea vanno bene per lo script ma non sono utilizzabili dall'utente in maniera manuale
+
+	Poss. sol:
+		Crea 2 file bat
+		Modifica il file bat prima di far partire il server
+	Test:
+		What happens if start.bat is not there
