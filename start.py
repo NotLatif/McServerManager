@@ -21,7 +21,7 @@ try:
 except ModuleNotFoundError:
 	print('FATAL \n' + str(traceback.format_exc()))
 	input('Premere invio per interrompere')
-#testtt
+
 init()
 print(Style.BRIGHT)
 
@@ -32,7 +32,6 @@ tellrawspec.loader.exec_module(tellraw)
 autobackupspec = importlib.util.spec_from_file_location("tellraw.py", "zscripts\\autobackup.py")
 AutoBackup = importlib.util.module_from_spec(autobackupspec)
 autobackupspec.loader.exec_module(AutoBackup)
-
 
 
 log = True
@@ -61,15 +60,15 @@ def prtStackTrace(Fatal = False):
 		mPrint('ERROR', '\n' + traceback.format_exc())
 
 def createLog():
-	if not os.path.exists('logs'):
+	if not os.path.exists('logs'): #crea la dir log se non esiste
 		os.mkdir('logs')
-	if not os.path.isfile(logFile):
+	if not os.path.isfile(logFile): #crea il file logs\{now} se non esiste
 		data = 'Welcome to the log lmao nothing useful here? Probabli not.\n'
-		data = data + 'I present you the complete mess of this script\n\n'
-		writeDataFile(logFile, data)
+		data = data + 'I present to you the complete mess of this script\n\n'
+		writeDataFile(logFile, data) #first commit
 	else:
-		mPrint('FUNC', f'createLog()')
-		mPrint('DEV', f'File già presente: {logFile}')
+		mPrint('FUNC', f'createLog()') #log file exists??? wtf how (impossible)
+		mPrint('DEV', f'File già presente: {logFile}') #actually too scared to delete this who knows
 
 def logToFile(newdata):
 	File = getDataFile(logFile)
@@ -162,7 +161,7 @@ def checkConfig():
 	remQuote('properties.ini')
 	return r
 
-def createConfig(): #works but remember to update
+def createConfig(): #works but remember to update OHSHIT FORGOT
 	mPrint('FUNC', f'createConfig()')
 	config = configobj.ConfigObj()
 	config.filename = 'properties.ini'
@@ -238,7 +237,7 @@ def verifyStatus(server):
 		else:
 			mPrint('ERROR', 'Server non trovato.')
 
-def loadServers():
+def loadServers(): 
 	mPrint('FUNC', f'loadServers()')
 	s = dirGrab()
 	x = 0
@@ -544,7 +543,7 @@ def dirGrab(isStart = True): #works but can be updated
 	for x in r_dirs:
 		dirs = [x[2:-1] for x in r_dirs]
 	#Cerco il file "server.properties" or "config.yml" in ogni directory.
-	#Se il file è presente, esiste un server
+	#Se il file è presente, esiste un server (in teoria)
 	if(isStart == True):
 		mPrint('WORK', 'Scanning for server.properties')
 		#Controllo se c'è un server.properties
@@ -1371,18 +1370,31 @@ def inHelp(menu):
 	else:
 		rPrint('Aiuti non trovati per questo comando...')
 
-'''
-configobbj
+'''TODO
+configobbj ??????????? do it properly bro requirements.txt
 keyboard
 mcrcon
 colorama
 requests
 
+Fix de #include mess do it properly (this matters <<<)
+Properties is overengineered FIX ASAP JUST DO .py (But i guess it does not matter)
 
-back{id: [aaId, date, [IDs]} 
-            0     1    2[]  
+#  -------------------------- Structures --------------------------  #
+Backups dict:
+	back{id: [aaId, date, [IDs]} 
+    	        0     1    2[]  
 
-#todo
+Dict of online server:
+	online = {onlineId: ['Server', state, port, rcon]}  
+	state can be: 0:offline, 1:online, 2:restarting
+
+#  --------------------------------------------------------------------  #
+
+#TODO
+
+AT startup:
+	Check if servers are on (fast or threads?)
 
 #print something randomly in server if online
 #automate first server start
@@ -1399,23 +1411,21 @@ back{id: [aaId, date, [IDs]}
 #reminders
 	add everything in help
 		set command
-	LOOK THROUGH EVERY FUCKING COMMAND
+	LOOK THROUGH EVERY FUCKING COMMAND (testing lmao)
 '''
-
-
 
 
 #runtime start#
 
-#Preparazione
+#Preparazione (step 1)
 try:
 	createLog()
 
-	if(os.path.isfile('properties.ini') == False):#works (checks if files are good)
+	if(os.path.isfile('properties.ini') == False): #works (checks if files are good)
 		mPrint('INFO', '\nConfig file does not exist, creating one...')#why am I writing in different nations
-		createConfig()
+		createConfig() # adds configs to config file
 		mPrint('INFO', 'properties.ini creato, modificalo prima di avviare un server!')#sure idk
-		crash()
+		crash() #brutal but works i guess
 	else:
 		if checkConfig() == 1:
 			mPrint('INFO', 'Modifica l\'ip nel file properties.ini!')
@@ -1430,10 +1440,10 @@ try:
 		devLogs = False if devLogs == 'False' else True
 
 		mPrint('INFO', f'cfglog: {config["log"]}')
-		if(config['server-ip'] == '' or config['server-ip'].count('.')!=3 or not config['server-ip'].find('x') == -1):
+		if(config['server-ip'] == '' or config['server-ip'].count('.')!=3 or not config['server-ip'].find('x') == -1): #kind of check if ip is good
 			mPrint('FATAL', 'Questo non è un problema del codice, il file properties è errato, Hai impostato correttamente l\'ip?')
 			crash()
-		if(config['server-port'] == '' or config['server-port'].isnumeric() == False or int(config['server-port']) >= 25575):
+		if(config['server-port'] == '' or config['server-port'].isnumeric() == False or int(config['server-port']) >= 25575): #kind of check if port is good
 			mPrint('FATAL', 'Questo non è un problema del codice, il file properties è errato, Hai impostato correttamente la porta?')
 			mPrint('INFO', 'Ricorda che la porta deve essere < 25575')
 			crash()
@@ -1442,7 +1452,6 @@ try:
 	mPrint('INFO', 'Se ci sono server online, usa il comando \'check help\' o \'set help\' per informazioni')
 
 	mPrint('INFO', 'Loading server list...')
-
 	loadServers()
 
 	mPrint('INFO', 'Loading other properties...')
