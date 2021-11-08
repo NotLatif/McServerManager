@@ -140,9 +140,6 @@ class Servers:
 		elif(param == 'rcon'):
 			self.rcon = value
 
-	def printData(self):
-		print(f'Server {self.name}, State {self.state}, Port {self.port}, Rcon {self.rcon}')
-
 	def getData(self):
 		return([self.name, self.state, self.port, self.rcon])
 
@@ -303,7 +300,7 @@ def verifyStatus(serverID):
 	if serverID < 0:
 		pass
 	else:
-		if serverID <= len(Servers.serverCount):
+		if serverID <= Servers.serverCount:
 			startTime = time.time()
 			beginTime = time.time()
 			seconds = 7
@@ -316,7 +313,7 @@ def verifyStatus(serverID):
 				if elapsedTime > seconds:
 					mPrint('INFO', 'controllo...')
 					if isServerAlive(config['server-ip'], server[serverID].port):
-						mPrint('INFO', f'Server: {server[serverID][0]} è stato rilevato. ({round(currentTime-beginTime)}sec.)')
+						mPrint('INFO', f'Server: {server[serverID].name} è stato rilevato. ({round(currentTime-beginTime)}sec.)')
 						server[serverID].state = 'online'
 						break
 					else:
@@ -620,7 +617,7 @@ def modRam(xmx, serverID=-1):
 
 		for i in range(Servers.serverCount):
 			batFixer(i, xmx)
-	elif serverID < len(Servers.serverCount):
+	elif serverID < Servers.serverCount:
 		batFixer(serverID, xmx)
 	else:
 		mPrint('ERROR', 'Server non trovato!')
@@ -785,7 +782,7 @@ def start(serverID, port=None):#I hope it works
 		return -1
 
 	for i in range(Servers.serverCount): #FIXME 5 server[i] is not iterable
-		if s[serverID] in server[i] and server[i].state != 0: #Controllo se il server che sto facendo partire è già online
+		if s[serverID] == server[i].name and server[i].state != 0: #Controllo se il server che sto facendo partire si già online
 			mPrint('INFO', 'Controllo lo stato del server...')
 			if isServerAlive(config['server-ip'], port):
 				mPrint('WARN', 'Server già partito, annullo il comando')
@@ -795,7 +792,7 @@ def start(serverID, port=None):#I hope it works
 				mPrint('INFO', f'Server segnalato online in realtà è offline, aggiorno lo stato per il server {serverID}')
 				server[i].state = 0
 
-		if port in server[i] and server[i].state != 0: #Controllo se la porta è libera
+		if port == server[i].port and server[i].state != 0: #Controllo se la porta è libera
 			mPrint('INFO', 'Controllo lo stato del server...')
 			if isServerAlive(config['server-ip'], port):
 				mPrint('WARN', f'Esiste un server online su questa porta: {port}')
@@ -824,11 +821,11 @@ def start(serverID, port=None):#I hope it works
 	try:
 		p = subprocess.Popen(file, creationflags=subprocess.CREATE_NEW_CONSOLE)
 		mPrint('INFO', 'Server initialized.')
-		server[serverID].state = 3 #[name,STATE,port,rcon]
-		server[serverID][2] = port
+		server[serverID].state = 1 #[name,STATE,port,rcon]
+		server[serverID].port = port
 
 		mPrint('INFO', 'Verifico lo stato del server...')
-		verifyStatus(server)
+		verifyStatus(serverID)
 		mPrint('INFO', 'Condividi il tuo ip per far entrare anche gli altri!')
 		if port != '25565':
 			mPrint('INFO', f'{extIp}:{port}')
@@ -848,6 +845,8 @@ def stop(serverID = None, Force = False):
 			mPrint('WORK', 'Server is not numeric')
 			serverID = txtToId(serverID)
 			mPrint('WORK', f'server = {serverID}')
+		else:
+			serverID = int(serverID)
 	except AttributeError:
 		mPrint('WORK', 'Server is numeric')
 		serverID = int(serverID)
@@ -972,7 +971,7 @@ def stop(serverID = None, Force = False):
 				mPrint('INFO', f'Aggiorno le impostazioni...')
 				server[serverID].state = 0
 				mPrint('INFO', 'Fatto!')
-				mPrint('DEV', f'online[server][1] is now: {server[serverID].state}')
+				mPrint('DEV', f'server[server].state is now: {server[serverID].state}')
 				return -1
 
 def restart(serverID = None):#not yet

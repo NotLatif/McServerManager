@@ -1,7 +1,8 @@
 # TODO
+- ✔ Maybe change online dict to class? could benefit i think
 - ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE 
-- ⭐⭐⭐⭐Maybe change online dict to class? could benefit i think
 - ⭐⭐⭐hot add server
+- ⭐⭐⭐when script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
 - ⭐⭐automate first server start
 - ⭐⭐add per-server settings
 - ⭐⭐Fix de #include mess for local scripts do it properly (this matters <<<)
@@ -23,8 +24,9 @@
 - ⭐⭐⭐what if dirs change runtime?
 - ⭐⭐What happens if start.bat is not there
 - ⭐LOOK THROUGH EVERY FUCKING COMMAND
-- ⭐⭐⭐⭐⭐⭐ start function
-- `in server[i]` syntax
+- ⭐⭐⭐⭐⭐⭐ start / stop / restart functions
+- ⭐⭐ Stopping Server1 halts until you enter in game console
+- ✔`in server[i]` syntax
 
 # CODE REVIEW
 - verifyStatus()
@@ -44,7 +46,23 @@ Backups dict:
 	back{id: [aaId, date, [IDs]} | `back[id] = [aaId, date, [IDs]`
     	        0     1    2[]  
 
-Online dict:
+Online Class:
+	start.py has a list of Server objects -> server[Server]
+	properties:
+	server[x].name
+	server[x].state
+	server[x].port
+	server[x].rcon
+	server[x].psw  #YET TO IMPLEMENT
+
+	functions:
+	isAlive()	isServerAlive is moving there (noy implemented yet)
+	isOnline()	(returns False if state == 0 else True)
+	setParam(param, value)	sets an Object param
+	getData()	Returns Object properties in a list
+
+
+Online dict DEPRECATED:
 	online = {onlineId: ['Server', state, port, rcon]}  |  `online[onlineId] = ['Server', state, port, rcon]`
 	state can be: 0:offline, 1:online, 2:restarting
 #  -------------------------- BACKUP RELATED --------------------------  #
