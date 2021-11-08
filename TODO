@@ -17,6 +17,7 @@
 - FIXME 2 timeout? really?
 - FIXME 3 autobackup function implement
 - FIXME 4 check that
+- FIXME 5 INFO ON FILE CHECK NOW (consigli: crea funzione nella classe Servers)
 
 # TESTING
 - ⭐⭐⭐what if dirs change runtime?

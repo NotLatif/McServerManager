@@ -147,7 +147,6 @@ class Servers:
 		return([self.name, self.state, self.port, self.rcon])
 
 
-
 #  ----------- Script Functions -----------
 def prtStackTrace(Fatal = False):
 	if Fatal:
@@ -785,7 +784,7 @@ def start(serverID, port=None):#I hope it works
 		mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
 		return -1
 
-	for i in range(Servers.serverCount):
+	for i in range(Servers.serverCount): #FIXME 5 server[i] is not iterable
 		if s[serverID] in server[i] and server[i].state != 0: #Controllo se il server che sto facendo partire è già online
 			mPrint('INFO', 'Controllo lo stato del server...')
 			if isServerAlive(config['server-ip'], port):
