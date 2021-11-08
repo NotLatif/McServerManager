@@ -8,29 +8,22 @@ try:
 	import shutil
 	import configobj
 	import importlib.util
+	import json
 	from colorama import Fore, Back, Style, init
 	from distutils.dir_util import copy_tree
 	from configobj import ConfigObj
 	from datetime import datetime
 	from shutil import copyfile
-	from zipfile import ZipFile 
+	from zipfile import ZipFilse 
 	from mcrcon import MCRcon
 	from requests import get
 	from glob import glob
+	init()
 except ModuleNotFoundError:
 	print('FATAL \n' + str(traceback.format_exc()))
 	input('Premere invio per interrompere')
 
-init()
 print(Style.BRIGHT)
-
-tellrawspec = importlib.util.spec_from_file_location("tellraw.py", "zscripts\\tellraw.py")
-tellraw = importlib.util.module_from_spec(tellrawspec)
-tellrawspec.loader.exec_module(tellraw)
-
-autobackupspec = importlib.util.spec_from_file_location("tellraw.py", "zscripts\\autobackup.py")
-AutoBackup = importlib.util.module_from_spec(autobackupspec)
-autobackupspec.loader.exec_module(AutoBackup)
 
 log = True
 bmx = 15
@@ -141,6 +134,75 @@ class Servers:
 
 	def getData(self):
 		return([self.name, self.state, self.port, self.rcon])
+
+class makeTellraw:
+	##Code is not mine, but can't find the source
+    text = ''
+    color = 'white'
+    bold = False
+
+    def __init__(self, **kwargs):
+        self.__json = {}
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                self.__setattr__(k, v)
+        self.__format_mc()
+
+    def __format_mc(self):
+        self.__to_add('text', self.text)
+        self.__to_add('bold', self.bold)
+        if checkColor(self.color):
+            self.__to_add('color', self.color)
+
+    def __to_add(self, key, value):
+        if value is not False and value is not None:
+            self.__json[key] = value
+
+    def get_json(self):
+        return json.dumps(self.__json, separators=(',', ':'))
+
+    @staticmethod
+    def multiple_tellraw(*tellraws):
+        return_list = ','.join(str(tellraw) for tellraw in tellraws)
+        # Double quote is add to avoid parent heriarchy of Events
+        return '["",' + return_list + ']'
+
+    def __str__(self):
+        return self.get_json()
+
+def checkColor(color):
+    if color == 'dark_red':
+        return True
+    elif color == 'red':
+        return True
+    elif color == 'gold':
+        return True
+    elif color == 'yellow':
+        return True
+    elif color == 'dark_green':
+        return True
+    elif color == 'green':
+        return True
+    elif color == 'aqua':
+        return True
+    elif color == 'blue':
+        return True
+    elif color == 'dark_blue':
+        return True
+    elif color == 'light_purple':
+        return True
+    elif color == 'white':
+        return True
+    elif color == 'gray':
+        return True
+    elif color == 'dark_gray':
+        return True
+    elif color == 'black':
+        return True
+    else:
+        return False
+
+print('[tellaraw.py] initialized.')
 
 #  ----------- Script Functions -----------
 def prtStackTrace(Fatal = False):
@@ -882,7 +944,7 @@ def stop(serverID = None, Force = False):
 			if(server[i].state):
 				try:
 					splash = getSplash('stop')
-					sendRcon(x,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
+					sendRcon(x,'tellraw @a', str(makeTellraw(text=splash, color='green', bold=True)))
 				except Exception:
 					prtStackTrace()
 	else: # only one server is online
@@ -898,11 +960,11 @@ def stop(serverID = None, Force = False):
 
 		try:
 			splash = getSplash('stop')
-			sendRcon(serverID,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
+			sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='green', bold=True)))
 		except Exception:
 			prtStackTrace()
 
-	mes = str(tellraw.make(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
+	mes = str(makeTellraw(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
 
 	#those send
 	if serverID < 0: #-1| target all online server
@@ -1212,7 +1274,7 @@ def backup(serverID=-2): #-1: all; -2:online
 			if server[serverID].state == 1:
 				if isServerAlive(config['server-ip'], server[serverID].port):
 					splash = getSplash('backup')
-					sendRcon(serverID,'tellraw @a', str(tellraw.make(text=splash, color='yellow', bold=True)))
+					sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='yellow', bold=True)))
 					rconSave(serverID)
 			
 			for i in range(len(back)):

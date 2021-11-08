@@ -1,12 +1,12 @@
 # TODO
 - ✔ Maybe change online dict to class? could benefit i think
 - ✔ When script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
+- ✔Fix de #include mess for local scripts do it properly
 - ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE 
 - ⭐⭐⭐hot add server
 - ⭐⭐⭐ Maybe change back dict to class? just like online!
 - ⭐⭐automate first server start
 - ⭐⭐add per-server settings
-- ⭐⭐Fix de #include mess for local scripts do it properly (this matters <<<)
 - ⭐AT startup:
 	- Check if servers are on (fast or threads?)
     - timeout?
