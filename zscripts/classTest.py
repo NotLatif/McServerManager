@@ -5,15 +5,14 @@ class servers:
 		self.port = port
 		self.rcon = rcon
 
-	def setState(self, state):
-		self.state = state
-	
-	def setPort(self, port):
-		self.port = port
-	
-	def setRcon(self, rcon):
-		self.rcon = rcon
+	@property
+	def state(self):
+		return self.__state
+	@state.setter
+	def state(self, state):
+		self.__state = state	
 
+	# Other
 	def isOnline(self):
 		if self.state == 1:
 			return True
@@ -34,12 +33,16 @@ server.append(servers("S2", 0, 2667, 354))
 server.append(servers("S3", 1, 2668, 355))
 server.append(servers("S4", 2, 2669, 356))
 
-server[0].setRcon(2442)
-server[0].setState(2)
+
+print(server[0].rcon)
+server[0].rcon = 2334
+print(server[0].rcon)
+
+'''
 for x in range(len(server)):
 	print(f'IsOnline: {server[x].isOnline()}')
 	server[x].printData()
-	print(server[x].getData())
+	print(server[x].getData())'''
 
 
 #online = {onlineId: ['Server', state, port, rcon]}
