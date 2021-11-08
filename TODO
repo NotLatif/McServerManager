@@ -1,3 +1,5 @@
+RESTART FROM 814
+
 configobbj ??????????? do it properly bro requirements.txt
 keyboard
 mcrcon
@@ -15,6 +17,7 @@ Backups dict:
 Dict of online server:
 	online = {onlineId: ['Server', state, port, rcon]}  
 	state can be: 0:offline, 1:online, 2:restarting
+Maybe change this to class? could benefit i think
 
 #  --------------------------------------------------------------------  #
 
@@ -30,6 +33,7 @@ AT startup:
 check if port is forwarded at startup
 what if dirs change runtime?
 
+verifyStatus() <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #  -------------------------- BACKUP RELATED --------------------------  #
 
 #autobackup: [time (minutes)]

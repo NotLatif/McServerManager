@@ -461,7 +461,7 @@ def changeProperties(key, server=-1, syncRcon=True):#key = property name
 			rconSync()
 	return 0
 
-def singleChangeProperties(key, value, name):
+def changeSingleProperty(key, value, name):
 	mPrint('FUNC', f'singleChangeProperties({key}, {value}, {name})')
 	name = name + '\\server.properties'
 	temp_cfg = ConfigObj(name)
@@ -705,7 +705,7 @@ def start(server, port=None):#I hope it works
 				mPrint('WARN', f'Esiste un server online su questa porta: {port}')
 				mPrint('INFO', 'Provo con le prossime 5 porte...')
 				starterP = port
-				for y in range(1, 5):
+				for y in range(1, 5): #Provo le prossime 5 per qualche motivo
 					yPort = port+y
 					if isServerAlive(config['server-ip'], yPort):
 						mPrint('INFO', f'{yPort} non disponibile.')
@@ -723,18 +723,18 @@ def start(server, port=None):#I hope it works
 
 	if port != config['server-port']:
 		mPrint('DEV', f'if port != {config["server-port"]}: True')
-		singleChangeProperties('server-port', str(port), s[server])
+		changeSingleProperty('server-port', str(port), s[server])
 
 	try:
 		p = subprocess.Popen(file, creationflags=subprocess.CREATE_NEW_CONSOLE)
 		mPrint('INFO', 'Server initialized.')
-		online[server][1] = 3 #[name,state,port,rcon]
+		online[server][1] = 3 #[name,STATE,port,rcon]
 		online[server][2] = port
 
 		mPrint('INFO', 'Verifico lo stato del server...')
 		verifyStatus(server)
 		mPrint('INFO', 'Condividi il tuo ip per far entrare anche gli altri!')
-		if port != config['server-port']:
+		if port != '25565':
 			mPrint('INFO', f'{extIp}:{port}')
 		else:
 			mPrint('INFO', f'{extIp}')
@@ -754,13 +754,9 @@ def stop(server = None, Force = False):
 			mPrint('WORK', f'server = {server}')
 	except AttributeError:
 		mPrint('WORK', 'Server is numeric')
-
-	if server is not None:
-		mPrint('WORK', 'Server is not None')
 		server = int(server)
-		mPrint('WORK', f'server = {server}')
 
-	if server == None: #online/check if multiple are on
+	if server is None: #no input -> online/check if multiple are on
 		mPrint('WORK', 'Server is None')
 		count = 0
 		for i in range(len(online)):
@@ -778,37 +774,36 @@ def stop(server = None, Force = False):
 			server = -1
 		mPrint('WORK', f'server = {server}')
 
-
 	mes = str(tellraw.make(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
-	if server == -1:
+	if server == -1: #Multiple servers are online, but are they really?
 		mPrint('WORK', 'Checking all servers')
 		#force online list to be true online
-		for x in range(len(online)):
-			if online[x][1] == 1:
+		for x in range(len(online)): # online[onlineId] = [server, state, port, rcon]
+			if online[x][1] == 1:#online?
 				if not isServerAlive(config['server-ip'], online[x][2]):
 					online[x][1] = 0
 					mPrint('WORK', f'server {x} was fake online')
 			if not isServerAlive(config['server-ip'], online[x][3]):
-				mPrint('FATAL', f'La porta rcon per il server {x} è errata, sarà impossibile chiudere questo server.')
+				mPrint('FATAL', f'La porta rcon per il server {x} non è in ascolto, sarà impossibile chiudere questo server.')
 		
 		for x in range(len(online)):
-			try:
-				splash = getSplash('stop')
-				sendRcon(x,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
-			except Exception:
-				prtStackTrace()
-	else:
+			if(online[x][1]):
+				try:
+					splash = getSplash('stop')
+					sendRcon(x,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
+				except Exception:
+					prtStackTrace()
+	else: # only one server is online
 		mPrint('WORK', 'Checking one server')
 		if isServerAlive(config['server-ip'], online[server][2]) == False:
-			print('a')
 			online[server][1] = 0
 			mPrint('WARN', f'Il server {online[server][1]} è in realtà offline. annullo il comando')
 			return -1
+
 		if isServerAlive(config['server-ip'], online[server][3]) == False:
-			print('b')
-			mPrint('FATAL', f'La porta rcon per il server {online[server][0]} è errata. annullo il comando.')
+			mPrint('FATAL', f'La porta rcon per il server {online[server][0]} non ascolta. annullo il comando.')
 			return -1
-		print('c')
+
 		try:
 			splash = getSplash('stop')
 			sendRcon(server,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
@@ -816,41 +811,7 @@ def stop(server = None, Force = False):
 			prtStackTrace()
 
 	#those send
-	if server >= 0: #specific
-		print('d')
-		if server >= len(online):
-			mPrint('WARN', f'Il server {server} non esiste, ho rilevato solo {len(online)} server')
-			mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
-		else:
-			if online[server][1] == 1:
-				sendRcon(server, 'tellraw @a', mes)
-				if not Force:
-					mPrint('WARN', 'Do you want to stop the server? (Y/N): ')
-					print('> ', end='')
-					command = input().lower()
-					logToFile('> ' + command)
-				else:
-					command = 'y'
-				if command.lower() == 'y':
-					try:
-						mPrint('INFO', 'mando una richiesta al server...')
-						sendRcon(server, 'stop')
-						online[server][1] = 0
-					except Exception:
-						prtStackTrace()
-				else:
-					mPrint('INFO', 'Comando stop annullato')
-					mPrint('INFO', f'Il server {online[server][0]} è ancora online.')
-
-			else:
-				mPrint('INFO', f'Il server {online[server][0]} è già offline')
-				mPrint('INFO', f'Aggiorno le impostazioni...')
-				online[server][1] = 0
-				mPrint('INFO', 'Fatto!')
-				mPrint('DEV', f'online[server][1] is now: {online[server][1]}')
-
-
-	else: #-1|all
+	if server < 0: #-1|all
 		for x in range(len(online)):
 			if online[x][1] == 1:
 				try:
@@ -883,6 +844,40 @@ def stop(server = None, Force = False):
 				online[x][1] = 0
 				mPrint('INFO', 'Fatto!')
 				mPrint('DEV', f'online[x][1] is now: {online[x][1]}')
+	else: #specific
+		if server >= len(online):
+			mPrint('WARN', f'Il server {server} non esiste, ho rilevato solo {len(online)} server')
+			mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
+		else:
+			if online[server][1] == 1:
+				sendRcon(server, 'tellraw @a', mes)
+				if not Force:
+					mPrint('WARN', 'Do you want to stop the server? (Y/N): ')
+					print('> ', end='')
+					command = input().lower()
+					logToFile('> ' + command)
+				else:
+					command = 'y'
+				if command.lower() == 'y':
+					try:
+						mPrint('INFO', 'mando una richiesta al server...')
+						sendRcon(server, 'stop')
+						online[server][1] = 0
+					except Exception:
+						prtStackTrace()
+				else:
+					mPrint('INFO', 'Comando stop annullato')
+					mPrint('INFO', f'Il server {online[server][0]} è ancora online.')
+
+			else:
+				mPrint('INFO', f'Il server {online[server][0]} è già offline')
+				mPrint('INFO', f'Aggiorno le impostazioni...')
+				online[server][1] = 0
+				mPrint('INFO', 'Fatto!')
+				mPrint('DEV', f'online[server][1] is now: {online[server][1]}')
+
+
+	
 
 def restart(server = None):#not yet
 	mPrint('FUNC', f'restart({server})')
