@@ -1402,7 +1402,7 @@ except Exception:
 rPrint('\n\n')
 rPrint('| Benvenuto nel server starter!           |')
 rPrint('| - Premi \'h\' per la lista dei comandi    |')
-rPrint('| Creato da Latif\u2122 Co., Ltd.              |')
+rPrint('| Creato da Latif                         |')
 
 #cmds: bottom of function
 def main(run):
