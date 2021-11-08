@@ -37,7 +37,7 @@ log = True
 bmx = 15
 rconPort = 25575
 rconPsw = 'Rcon69Psw'
-online = {}
+#online = {}
 #Dict of online server, strcuture: {onlineId: ['Server', state, port, rcon]}; state can be: 0:offline, 1:online, 2:restarting
 
 run = True
@@ -50,7 +50,75 @@ extIp = get('https://api.ipify.org').text
 back = {}
 #back{id: [aaId, date, [IDs]}
 
+class Servers:
+	serverCount = 0
+	def __init__(self, name, state, port, rcon):
+		if(port <= 1025 or port >= 65535):
+			port = 25565 #FIXME configport
+		if(rcon <= 1025 or rcon >= 65535):
+			rcon = 25545 #FIXME configrcon
+			
+		self.name = name	#char: folder name
+		self.state = state	#0: offline | 1: online | 2: restarting
+		self.port = port	#server-port
+		self.rcon = rcon	#rcon-port
+		#self.psw = psw		#rcon-password
 
+		Servers.serverCount += 1
+
+	#name set/get
+	@property
+	def name(self):
+		return self.__name
+	@name.setter #FIXME name should be read-only
+	def name(self, name):
+		self.__name = name
+	
+	#state set/get
+	@property
+	def state(self):
+		return self.__state
+	@state.setter
+	def state(self, state):
+		self.__state = state
+	
+	#port set/get
+	@property
+	def port(self):
+		return self.__port
+	@port.setter
+	def port(self, port):
+		self.__port = port
+
+	#rcon set/get
+	@property
+	def rcon(self):
+		return self.__rcon
+	@rcon.setter
+	def rcon(self, rcon):
+		self.__rcon = rcon
+
+	# Functions
+		## port checking
+	def isAlive(self):
+		pass
+
+		## return online state
+	def isOnline(self):
+		if self.state == 1:
+			return True
+		else:
+			return False
+
+	def printData(self):
+		print(f'Server {self.name}, State {self.state}, Port {self.port}, Rcon {self.rcon}')
+
+	def getData(self):
+		return([self.name, self.state, self.port, self.rcon])
+
+server = [] #Will contain Servers objects
+
+#  ----------- Script Functions -----------
 def prtStackTrace(Fatal = False):
 	if Fatal:
 		mPrint('FATAL', '\n' + traceback.format_exc())
@@ -253,7 +321,7 @@ def loadServers():
 			mPrint('WARN', f'server: {server} ha una porta >= a 25575.')
 			mPrint('INFO', 'per evitare problemi porto la server-port a 25565.')
 			sPort = 25565
-		online[x] = [str(server), 0, sPort, rPort] #technically offline but ok 
+		server.append(Servers(str(server), 0, sPort, rPort)) #Create Servers objects
 		x += 1
 	mPrint('INFO', f'Loaded {x} servers.')
 
