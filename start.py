@@ -24,7 +24,6 @@ except ModuleNotFoundError:
 init()
 print(Style.BRIGHT)
 
-
 tellrawspec = importlib.util.spec_from_file_location("tellraw.py", "zscripts\\tellraw.py")
 tellraw = importlib.util.module_from_spec(tellrawspec)
 tellrawspec.loader.exec_module(tellraw)
