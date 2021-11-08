@@ -185,8 +185,6 @@ def updateConfig(key, value): #worked last time I checked
 	
 def crash(): #lol does it work if it crashes the program? (yes because it just stops it)
 	mPrint('FUNC', f'crash()')
-	mPrint('Premere un tasto per terminare...')
-	input()
 	exit()
 
 def remQuote(file):#just works (all the three things)
@@ -249,8 +247,8 @@ def loadServers():
 		rPort = getProperty('rcon.port', server)
 		if sPort < 0:	# FIXME 1 (CHECKME) [non dovrei prendere dall'ini??? perché questi valori fissi??]
 			mPrint('ERROR', f'valore server-port non valido nel server: {server}')
-			mPrint('INFO', 'porto la server-port a 25565.') ##Ma perché proprio 25565??
-			sPort = 25565
+			mPrint('INFO', 'porto la server-port a 25565.') ##SOLO UN PLACEHOLDER, VERRÀ CAMBIATO DURANTE IL LOADING
+			sPort = config['server-port']
 		if sPort >= 25575:
 			mPrint('WARN', f'server: {server} ha una porta >= a 25575.')
 			mPrint('INFO', 'per evitare problemi porto la server-port a 25565.')

@@ -1,27 +1,25 @@
 # TODO
-- add `requirements.txt`
-- Fix de #include mess for local scripts do it properly (this matters <<<)
-- AT startup:
+- ⭐⭐⭐⭐Maybe change online dict to class? could benefit i think
+- ⭐⭐⭐hot add server
+- ⭐⭐automate first server start
+- ⭐⭐add per-server settings
+- ⭐⭐Fix de #include mess for local scripts do it properly (this matters <<<)
+- ⭐AT startup:
 	- Check if servers are on (fast or threads?)
     - timeout?
-- print something randomly in server if online
-- automate first server start
-- hot add server
-- check if port is forwarded at startup
-- Maybe change online dict to class? could benefit i think
-- add per-server settings
+- ⭐print something randomly in server if online
+- ⭐check if port is forwarded at startup
 - TODO 0
 
 # FIXME
 - FIXME 0 idToBack() does not exist
-- FIXME 1 (info on comment)
 - FIXME 2 timeout? really?
 - FIXME 3 autobackup function implement
 
 # TESTING
-- what if dirs change runtime?
-- LOOK THROUGH EVERY FUCKING COMMAND
-- What happens if start.bat is not there
+- ⭐⭐⭐what if dirs change runtime?
+- ⭐⭐What happens if start.bat is not there
+- ⭐LOOK THROUGH EVERY FUCKING COMMAND
 
 # CODE REVIEW
 - verifyStatus()
@@ -31,8 +29,10 @@
 		- Crea 2 file bat
 		- Modifica il file bat prima di far partire il server
 		
-# REMINDERS
+# ⭐REMINDERS⭐
 - add everything in help
+- add `requirements.txt`
+- update createConfig() when changing properties.ini
 
 #  -------------------------- Structures --------------------------  #
 Backups dict:
