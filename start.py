@@ -55,6 +55,7 @@ server = [] #Will contain Servers objects
 class Servers:
 	serverCount = 0
 	def __init__(self, name, state, port, rcon):
+		mPrint('DEV', f'Called class contructor Servers({name}, {state}, {port}, {rcon})')
 		if(port <= 1025 or port >= 65535):
 			port = 25565 #FIXME configport
 		if(rcon <= 1025 or rcon >= 65535):
@@ -81,14 +82,21 @@ class Servers:
 		return self.__state
 	@state.setter
 	def state(self, state):
-		if state == 'online':
-			state = 1
-		elif state == 'offline':
-			state = 0
-		elif state == 'restarting':
-			state = 2
-		else:
-			state = None
+		try:
+			state = int(state)
+			if not (0 <= state <= 2): ##OMG THIS IS SO COOL WTFFF
+				state = None
+		except ValueError:
+			if state == 'online':
+				state = 1
+			elif state == 'offline':
+				state = 0
+			elif state == 'restarting':
+				state = 2
+			else:
+				state = None
+
+		if(state == None):
 			mPrint('FATAL', 'Incorrect server state')
 			crash()
 		self.__state = state
@@ -120,6 +128,17 @@ class Servers:
 			return True
 		else:
 			return False
+
+	def setParam(self, param, value):
+		#server[serverID].setPatam(param, value)
+		if(param == 'name'):
+			self.name = value
+		elif(param == 'state'):
+			self.state = value
+		elif(param == 'port'):
+			self.port = value
+		elif(param == 'rcon'):
+			self.rcon = value
 
 	def printData(self):
 		print(f'Server {self.name}, State {self.state}, Port {self.port}, Rcon {self.rcon}')
@@ -332,7 +351,7 @@ def loadServers():
 			mPrint('WARN', f'server: {serverName} ha una porta >= a 25575.')
 			mPrint('INFO', 'per evitare problemi porto la server-port a 25565.')
 			sPort = 25565
-		serverName.append(Servers(str(serverName), 0, sPort, rPort)) #Create Servers objects
+		server.append(Servers(str(serverName), 0, sPort, rPort)) #Create Servers objects
 		x += 1
 	mPrint('INFO', f'Loaded {x} servers.')
 
@@ -723,10 +742,10 @@ def sendRcon(serverID, command, text = None):
 		
 	mPrint('DEV', 'Invio un comando al server: ' + send)
 	mPrint('DEV', f'attempting rcon communication, \n\tserver: {serverID}\n\tcommand: {command}\n\ttext: {text}\n\tsend: {send}')
-	mPrint('DEV', f'connection informations: \n\tip: {config["server-ip"]}\n\tpsw: {rconPsw}\n\tport: {online[serverID][3]}')
+	mPrint('DEV', f'connection informations: \n\tip: {config["server-ip"]}\n\tpsw: {rconPsw}\n\tport: {server[serverID].rcon}')
 
 	try:
-		with MCRcon(config['server-ip'], rconPsw, online[serverID][3]) as mcr:
+		with MCRcon(config['server-ip'], rconPsw, server[serverID].rcon) as mcr:
 			resp = mcr.command(send)
 			mPrint('RESP', 'server resp: ' + resp)
 	except ConnectionRefusedError:
@@ -821,38 +840,38 @@ def start(serverID, port=None):#I hope it works
 		mPrint('ERROR', 'C\'è stato un problema: printing Traceback:')
 		prtStackTrace()
 
-def stop(server = None, Force = False):
-	mPrint('FUNC', f'stop({server})')
+def stop(serverID = None, Force = False):
+	mPrint('FUNC', f'stop({serverID})')
 
 	#preparazione
 	try:
-		if server.isnumeric() == False:
+		if serverID.isnumeric() == False:
 			mPrint('WORK', 'Server is not numeric')
-			server = txtToId(server)
-			mPrint('WORK', f'server = {server}')
+			serverID = txtToId(serverID)
+			mPrint('WORK', f'server = {serverID}')
 	except AttributeError:
 		mPrint('WORK', 'Server is numeric')
-		server = int(server)
+		serverID = int(serverID)
 
-	if server is None: #no input -> online/check if multiple are on
+	if serverID is None: #no input -> online/check if multiple are on
 		mPrint('WORK', 'Server is None')
 		count = 0
-		for i in range(Servers.serverCount):
+		for i in range(Servers.serverCount): #FIXME double loop could be only one loop
 			if server[i].state == 1:
 				count += 1
 		if count == 1:
 			for i in range(Servers.serverCount):
 				if server[i].state == 1:
-					server = i
+					serverID = i
 		elif count == 0:
 			mPrint('INFO', 'Nessun server trovato online!, \'ls help\'')
 			return -1
 		else:
 			mPrint('INFO', 'Piú di un server trovato online.')
-			server = -1
+			serverID = -1
 		mPrint('WORK', f'server = {server}')
 
-	if server == -1: #Multiple servers are online, but are they really?
+	if serverID == -1: #Multiple servers are online, but are they really? #FIXME
 		mPrint('WORK', 'Checking all servers')
 		#force online list to be true online
 		for x in range(Servers.serverCount): # online[onlineId] = [server, state, port, rcon]
@@ -860,7 +879,7 @@ def stop(server = None, Force = False):
 				if not isServerAlive(config['server-ip'], server[x].port):
 					server[i].state = 0
 					mPrint('WORK', f'server {x} was fake online')
-			if not isServerAlive(config['server-ip'], online[x][3]):
+			if not isServerAlive(config['server-ip'], server[x].rcon):
 				mPrint('FATAL', f'La porta rcon per il server {x} non è in ascolto, sarà impossibile chiudere questo server.')
 		
 		for x in range(Servers.serverCount):
@@ -872,25 +891,25 @@ def stop(server = None, Force = False):
 					prtStackTrace()
 	else: # only one server is online
 		mPrint('WORK', 'Checking one server')
-		if isServerAlive(config['server-ip'], online[server][2]) == False:
-			online[server][1] = 0
-			mPrint('WARN', f'Il server {online[server][1]} è in realtà offline. annullo il comando')
+		if isServerAlive(config['server-ip'], server[serverID].port) == False:
+			server[serverID].state = 0
+			mPrint('WARN', f'Il server {server[serverID].state} è in realtà offline. annullo il comando')
 			return -1
 
-		if isServerAlive(config['server-ip'], online[server][3]) == False:
-			mPrint('FATAL', f'La porta rcon per il server {online[server][0]} non ascolta. annullo il comando.')
+		if isServerAlive(config['server-ip'], server[serverID].rcon) == False:
+			mPrint('FATAL', f'La porta rcon per il server {server[serverID].name} non ascolta. annullo il comando.')
 			return -1
 
 		try:
 			splash = getSplash('stop')
-			sendRcon(server,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
+			sendRcon(serverID,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
 		except Exception:
 			prtStackTrace()
 
 	mes = str(tellraw.make(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
 
 	#those send
-	if server < 0: #-1| target all online server
+	if serverID < 0: #-1| target all online server
 		for x in range(Servers.serverCount):
 			if server[i].state == 1:
 				try:
@@ -924,12 +943,12 @@ def stop(server = None, Force = False):
 				mPrint('INFO', 'Fatto!')
 				mPrint('DEV', f'server[i].state is now: {server[i].state}')
 	else: # only target one server
-		if server >= Servers.serverCount:
-			mPrint('WARN', f'Il server {server} non esiste, ho rilevato solo {Servers.serverCount} server')
+		if serverID >= Servers.serverCount:
+			mPrint('WARN', f'Il server {serverID} non esiste, ho rilevato solo {Servers.serverCount} server')
 			mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
 		else:
-			if online[server][1] == 1:
-				sendRcon(server, 'tellraw @a', mes)
+			if server[serverID].state == 1:
+				sendRcon(serverID, 'tellraw @a', mes)
 				if not Force:
 					mPrint('WARN', 'Do you want to stop the server?')
 					command = yesNoInput(input('(Y/n) > '))
@@ -940,31 +959,31 @@ def stop(server = None, Force = False):
 				if command == 'y':
 					try:
 						mPrint('INFO', 'mando una richiesta al server...')
-						sendRcon(server, 'stop')
-						online[server][1] = 0
+						sendRcon(serverID, 'stop')
+						server[serverID].state = 0
 					except Exception:
 						prtStackTrace()
 				else:
 					mPrint('INFO', 'Comando stop annullato')
-					mPrint('INFO', f'Il server {online[server][0]} è ancora online.')
+					mPrint('INFO', f'Il server {server[serverID].name} è ancora online.')
 					return -2
 
 			else:
-				mPrint('INFO', f'Il server {online[server][0]} è già offline')
+				mPrint('INFO', f'Il server {server[serverID].name} è già offline')
 				mPrint('INFO', f'Aggiorno le impostazioni...')
-				online[server][1] = 0
+				server[serverID].state = 0
 				mPrint('INFO', 'Fatto!')
-				mPrint('DEV', f'online[server][1] is now: {online[server][1]}')
+				mPrint('DEV', f'online[server][1] is now: {server[serverID].state}')
 				return -1
 
-def restart(server = None):#not yet
-	mPrint('FUNC', f'restart({server})')
+def restart(serverID = None):#not yet
+	mPrint('FUNC', f'restart({serverID})')
 
-	if server == None:
+	if serverID == None:
 		mPrint('INFO', 'Provo a riavviare tutti i server.')
 		stopping = []
 		for x in range(Servers.serverCount):
-			if server[i].state == 1:
+			if server[x].state == 1:
 				stopping.append(x)
 		if len(stopping) == 0:
 			mPrint('INFO', 'Non ho trovato nessun server online!')
@@ -981,25 +1000,25 @@ def restart(server = None):#not yet
 		logToFile(f'> {command}')
 		for x in range(len(stopping)):
 			stop(x, True)
-			server[i].state = 2
+			server[x].state = 2
 		for x in range(len(stopping)):
 			start(x)
 
 	else:
-		if str(server).isnumeric():
-			server = int(server)
+		if str(serverID).isnumeric():
+			serverID = int(serverID)
 		else:
-			server = txtToId(server)
-			if str(server).isnumeric():
+			serverID = txtToId(serverID)
+			if str(serverID).isnumeric():
 				mPrint('ERROR', 'Server non trovato.')
 
-		mPrint('INFO', f'Provo a riavviare il server {server}.')
+		mPrint('INFO', f'Provo a riavviare il server {serverID}.')
 
 		try:
-			stop(server, True)
-			online[server][1] = 2
+			stop(serverID, True)
+			server[serverID].state = 2
 			time.sleep(5) ##FIXME <<<<<<<<<< maybe get a return from rcon?? IDK MAYBE MULTITHREADING!!!!
-			start(server)
+			start(serverID)
 		except Exception:
 			prtStackTrace()
 
@@ -1013,12 +1032,12 @@ def txtToId(txt):
 		i+=1
 	return -1
 
-def set(server, param, value = None):
-	mPrint('FUNC', f'set({server}, {param}, {value})')
+def set(serverID, param, value = None): #FIXME ADAPT TO CLASS
+	mPrint('FUNC', f'set({serverID}, {param}, {value})')
 	mPrint('WARN', 'Usare questa funzione solo se necessario.')
 	s = dirGrab()
 	if value != None: #raw from comand
-		online[server][param] = value
+		server[serverID].setParam(param, value)
 		return 0
 
 	if str(param).isnumeric():
@@ -1028,25 +1047,25 @@ def set(server, param, value = None):
 			param = 'offline'
 	param = param.lower()
 	try: #from program
-		if not str(server).isnumeric():
+		if not str(serverID).isnumeric():
 			for x in range(Servers.serverCount):
-				if s[x] == server:
-					server = x
+				if s[x] == serverID:
+					serverID = x
 					break
 				else:
-					server = None
-			if server == None:
+					serverID = None
+			if serverID == None:
 				print('ERROR', 'Nessun server trovato, prova con un id! \'ls\'')
 				return -1
 
-		server = int(server)
+		serverID = int(serverID)
 		if not str(param).isnumeric():
 			if param == 'online':
-				online[server][1] = 1
-				mPrint('INFO', f'Il server {online[server][0]} ora risulta online.')
+				server[serverID].state = 1
+				mPrint('INFO', f'Il server {server[serverID].name} ora risulta online.')
 			elif param == 'offline':
-				online[server][1] = 0
-				mPrint('INFO', f'Il server {online[server][0]} ora risulta offline.')
+				server[serverID].state = 0
+				mPrint('INFO', f'Il server {server[serverID].name} ora risulta offline.')
 	except Exception:
 		prtStackTrace()
 
@@ -1062,23 +1081,23 @@ def check(param, port=0): #Add command 'check [port|id|-f]' default: 25565 check
 			mPrint('Server non trovato, \'ls -u\' per aggiornare la lista')
 			return -1
 		if port == 0:
-			if isServerAlive(config['server-ip'], online[param][2]):
+			if isServerAlive(config['server-ip'], server[param].port):
 				mPrint('INFO', 'Server is online.')
-				online[param][1] = 1
+				server[param].state = 1
 				return 1
 			else:
 				mPrint('INFO', 'Server is offline')
-				online[param][1] = 0
+				server[param].state = 0
 				return 0
 		else:
 			if isServerAlive(config['server-ip'], port):
 				mPrint('INFO', 'Server is online.')
-				online[param][1] = 1
-				online[param][2] = port
+				server[param].state = 1
+				server[param].port = port
 				return 1
 			else:
 				mPrint('INFO', 'Server is offline')
-				online[param][1] = 0
+				server[param].state = 0
 				return 0
 	else:
 		if isServerAlive(config['server-ip'], param):
@@ -1089,7 +1108,7 @@ def check(param, port=0): #Add command 'check [port|id|-f]' default: 25565 check
 			while True:
 				s = input('[id]> ')
 				if check(s) != -1:
-					if not isServerAlive(config['server-ip'], online[s][3]):
+					if not isServerAlive(config['server-ip'], server[s].rcon):
 						mPrint('ERROR', 'La porta rcon non è disponibile, perfavore riavvia il server per evitare problemi.')
 					else:
 						break
@@ -1117,11 +1136,11 @@ def abort(method):
 		backup(-1)
 		os.system('shutdown /s /t 1')
 
-def backList(server = -1): 
+def backList(serverID = -1): 
 	mPrint('FUNC', f'backList()')
 	backSync()
 	rPrint(f'{Fore.GREEN}|------Backups------\n8{Fore.RESET}')
-	if server == -1:
+	if serverID == -1:
 		for i in range(len(back)):
 			rPrint('|')
 			rPrint(f'{Fore.MAGENTA}|->{back[i][1]}{Fore.RESET} (ID: {back[i][0]})')
@@ -1129,10 +1148,10 @@ def backList(server = -1):
 				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {back[i][2][j]}')
 	else:
 		for i in range(len(back)):
-			if online[server][0] in back[i][2]:
+			if server[serverID].name in back[i][2]:
 				rPrint('|')
 				rPrint(f'{Fore.MAGENTA}|->{back[i][1]}{Fore.RESET} (ID: {back[i][0]})')
-				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({i})-> {online[server][0]}')
+				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({i})-> {server[serverID].name}')
 	rPrint(f'{Fore.GREEN}|-------------------\n8{Fore.RESET}')
 
 
@@ -1158,16 +1177,16 @@ def backSync():
 			mPrint('WORK', f'[{num_string(x)}, {folder[x]}, {sub}]')
 			x+=1
 
-def rconSave(server):
-	sendRcon(server, 'save-all')
+def rconSave(serverID):
+	sendRcon(serverID, 'save-all')
 
-def backup(server=-2): #-1: all; -2:online
-	mPrint('FUNC', f'backup({server})')
+def backup(serverID=-2): #-1: all; -2:online
+	mPrint('FUNC', f'backup({serverID})')
 	now = datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
 	if not os.path.exists('backups'):
 		os.mkdir('backups')
 		mPrint('INFO', 'Created backup directory.')
-	if server==-1: #all
+	if serverID==-1: #all
 		for i in range(Servers.serverCount):
 			if server[i].state == 1:
 				if not (isServerAlive(config['server-ip'], server[i].port)):
@@ -1175,7 +1194,7 @@ def backup(server=-2): #-1: all; -2:online
 					server[i].state = 0
 					
 			backup(i)
-	elif server==-2: #online
+	elif serverID==-2: #online
 		for i in range(Servers.serverCount):
 			if server[i].state == 1:
 				if isServerAlive(config['server-ip'], server[i].port):
@@ -1184,36 +1203,36 @@ def backup(server=-2): #-1: all; -2:online
 					mPrint('WARN', f'Il server "{server[i].name}" è segnalato online ma risulta offline. Lo imposto come server offline.')
 					server[i].state = 0
 	else:
-		if not(server >= 0 and server <= Servers.serverCount):
+		if not(serverID >= 0 and serverID <= Servers.serverCount):
 			mPrint('WARN', f'Server {server} non trovato.')
 			return -1
 
 		now = datetime.now().strftime('%d-%m-%Y, %H_%M')
 
-		if os.path.exists(f'backups\\{now}\\{online[server][0]}'):
+		if os.path.exists(f'backups\\{now}\\{server[serverID].name}'):
 			mPrint('ERROR', 'Hai creato un backup meno di un minuto fa!') #FIXME 3
 		else:
 
-			if online[server][1] == 1:
-				if isServerAlive(config['server-ip'], online[server][2]):
+			if server[serverID].state == 1:
+				if isServerAlive(config['server-ip'], server[serverID].port):
 					splash = getSplash('backup')
-					sendRcon(server,'tellraw @a', str(tellraw.make(text=splash, color='yellow', bold=True)))
-					rconSave(server)
+					sendRcon(serverID,'tellraw @a', str(tellraw.make(text=splash, color='yellow', bold=True)))
+					rconSave(serverID)
 			
 			for i in range(len(back)):
 				if (int(now[-2:]) - 1 == int(back[i][1][-2:])) and (now[:-2] == back[i][1][:-2]):
-					if os.path.exists(f'backups\\{back[i][1]}\\{online[server][0]}'):
-						backDir = f'backups\\{now}\\{online[server][0]}'
+					if os.path.exists(f'backups\\{back[i][1]}\\{server[serverID].name}'):
+						backDir = f'backups\\{now}\\{server[serverID].name}'
 						break
 					else:
-						backDir = f'backups\\{back[i][1]}\\{online[server][0]}'
+						backDir = f'backups\\{back[i][1]}\\{server[serverID].name}'
 						break
 				else:
-					backDir = f'backups\\{now}\\{online[server][0]}'
+					backDir = f'backups\\{now}\\{server[serverID].name}'
 
 
 			if len(back) == 0:
-				backDir = f'backups\\{now}\\{online[server][0]}'
+				backDir = f'backups\\{now}\\{server[serverID].name}'
 
 			try:
 				os.mkdir(f'backups\\{now}')
@@ -1232,10 +1251,10 @@ def backup(server=-2): #-1: all; -2:online
 
 			os.mkdir(backDir)
 			
-			copy_tree(online[server][0], backDir)
+			copy_tree(server[serverID].name, backDir)
 
 
-			mPrint('INFO', f'Fatto ({online[server][0]})')
+			mPrint('INFO', f'Fatto ({server[serverID].name})')
 
 			backSync()
 
