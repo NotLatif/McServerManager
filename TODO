@@ -16,11 +16,14 @@
 - FIXME 0 idToBack() does not exist
 - FIXME 2 timeout? really?
 - FIXME 3 autobackup function implement
+- FIXME 4 check that
 
 # TESTING
 - ⭐⭐⭐what if dirs change runtime?
 - ⭐⭐What happens if start.bat is not there
 - ⭐LOOK THROUGH EVERY FUCKING COMMAND
+- ⭐⭐⭐⭐⭐⭐ start function
+- `in server[i]` syntax
 
 # CODE REVIEW
 - verifyStatus()
