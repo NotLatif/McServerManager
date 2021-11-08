@@ -33,7 +33,6 @@ autobackupspec = importlib.util.spec_from_file_location("tellraw.py", "zscripts\
 AutoBackup = importlib.util.module_from_spec(autobackupspec)
 autobackupspec.loader.exec_module(AutoBackup)
 
-
 log = True
 bmx = 15
 rconPort = 25575
@@ -43,7 +42,8 @@ online = {}
 
 run = True
 now = str(datetime.now().strftime('%d-%m-%Y_%H_%M_%S'))
-logFile = str(f'logs\\{now}.txt') 
+logNow = str(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'))
+logFile = str(f'logs\\{logNow}.txt') 
 
 extIp = get('https://api.ipify.org').text
 
@@ -85,34 +85,29 @@ def yesNoInput(input):
 def rPrint(text, reqlog=False):
 	mPrint(text, '', reqlog, True)
 
-def mPrint(square, text='', reqlog=False, raw=False):
-	elcolor = True
+def mPrint(prefix, text='', reqlog=False, raw=False):
 	now = datetime.now().strftime('%d-%m-%Y, %H:%M:%S')
 	res = Fore.RESET
 	col = Fore.RESET
 
-	if square == 'INFO':
+	if prefix == 'INFO':
 		col = Fore.GREEN
-	elif square == 'WARN':
+	elif prefix == 'WARN':
 		col = Fore.YELLOW
-	elif square == 'ERROR' or square == 'FATAL':
+	elif prefix == 'ERROR' or prefix == 'FATAL':
 		col = Fore.RED
-	elif square == 'DEV' or square == 'WORK':
+	elif prefix == 'DEV' or prefix == 'WORK':
 		col = Fore.MAGENTA
 		reqlog = True
-	elif square == 'FUNC':
+	elif prefix == 'FUNC':
 		col = Fore.BLACK
 		reqlog = True
-	elif square == 'RESP':
+	elif prefix == 'RESP':
 		col = Fore.CYAN
-	elif square == 'IMPORTANT':
+	elif prefix == 'IMPORTANT':
 		col = Fore.RED
 	else:
-		text = square
-
-	if not elcolor:
-		col = ''
-		red = ''
+		text = prefix
 
 	if raw:
 		if reqlog == True:
@@ -131,16 +126,16 @@ def mPrint(square, text='', reqlog=False, raw=False):
 	else:
 		if reqlog == True:
 			if log == True:
-				out = f'[{now}]: {col}[{square}] - {text}{res}'
+				out = f'[{now}]: {col}[{prefix}] - {text}{res}'
 
 			else:
 				if devLogs:
-					logToFile(f'[{now}]: [{square}] - {text}')
+					logToFile(f'[{now}]: [{prefix}] - {text}')
 				return 2
 		else:
-			out = f'[{now}]: {col}[{square}] - {text}{res}'
+			out = f'[{now}]: {col}[{prefix}] - {text}{res}'
 
-		logToFile(f'[{now}]: [{square}] - {text}')
+		logToFile(f'[{now}]: [{prefix}] - {text}')
 		print(out)
 		return 0
 
@@ -252,7 +247,7 @@ def loadServers():
 		#proprietà dei server.properties
 		sPort = getProperty('server-port', server)
 		rPort = getProperty('rcon.port', server)
-		if sPort < 0:	# FIXME (CHECKME) [non dovrei prendere dall'ini??? perché questi valori fissi??]
+		if sPort < 0:	# FIXME 1 (CHECKME) [non dovrei prendere dall'ini??? perché questi valori fissi??]
 			mPrint('ERROR', f'valore server-port non valido nel server: {server}')
 			mPrint('INFO', 'porto la server-port a 25565.') ##Ma perché proprio 25565??
 			sPort = 25565
@@ -774,7 +769,7 @@ def stop(server = None, Force = False):
 				if online[i][1] == 1:
 					server = i
 		elif count == 0:
-			print('INFO', 'Nessun server trovato online!, \'ls help\'')
+			mPrint('INFO', 'Nessun server trovato online!, \'ls help\'')
 			return -1
 		else:
 			mPrint('INFO', 'Piú di un server trovato online.')
@@ -1039,7 +1034,7 @@ def getSplash(menu = 'default'):
 def abort(method):
 	mPrint('FUNC', f'abort({method})')
 	if method == '-f':
-		mPrint('You have 5 seconds to save everything')
+		mPrint('IMPORTANT', 'You have 5 seconds to save everything')
 		time.sleep(5)
 		os.system('shutdown /s /t 1')
 	elif method == '-b':
@@ -1120,7 +1115,7 @@ def backup(server=-2): #-1: all; -2:online
 		now = datetime.now().strftime('%d-%m-%Y, %H_%M')
 
 		if os.path.exists(f'backups\\{now}\\{online[server][0]}'):
-			mPrint('Hai creato un backup meno di un minuto fa!')
+			mPrint('ERROR', 'Hai creato un backup meno di un minuto fa!') #FIXME 3
 		else:
 
 			if online[server][1] == 1:
@@ -1168,7 +1163,7 @@ def backup(server=-2): #-1: all; -2:online
 
 			backSync()
 
-def autobackup():
+def autobackup(): #FIXME 3
 	backNames = []
 	''' UNCOMMENT THIS LATER
 	for i in range(len(online)):
@@ -1460,7 +1455,7 @@ def main(run):
 					backList()
 			else:
 				try:
-					#idToBack() = int(command[1]) 
+					#idToBack() = int(command[1]) FIXME 0
 					backup(int(command[1]))
 				except ValueError:
 					mPrint('ERROR', 'Se hai provato ad inserire un ID, usane uno numerico.')
@@ -1564,7 +1559,7 @@ def main(run):
 		mPrint('INFO', 'log is now: ' + str(log))
 
 	elif command[0] == 'end':
-		#TODO CHECK ONLINE
+		#TODO 0 CHECK ONLINE
 		crash()
 
 	elif command[0] == 'h' or command[0] == 'help' or command[0] == '?':
