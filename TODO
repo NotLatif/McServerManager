@@ -41,7 +41,12 @@ restorebackup()
 
 #  --------------------------------------------------------------------  #
 
+change log naming to yyyy - mm - dd
 
+add 
+logToFile('> ' + command)
+to
+yesNoInput()
 
 #reminders
 	add everything in help

@@ -75,6 +75,13 @@ def logToFile(newdata):
 	File = File + str(newdata) + '\n'
 	writeDataFile(logFile, File)
 
+def yesNoInput(input):
+	input = input.lower()
+	if (input == 'y' or input == '' or input == 'yes'):
+		return 'y'
+	else:
+		return 'n'
+
 def rPrint(text, reqlog=False):
 	mPrint(text, '', reqlog, True)
 
@@ -820,12 +827,8 @@ def stop(server = None, Force = False):
 				except Exception:
 					prtStackTrace()
 		if not Force:
-			mPrint('WARN', 'Do you want to stop all the servers? (Y/n): ')
-			print('> ', end='')
-			command = input().lower()
-			if command == '':
-				command = 'y'
-
+			mPrint('WARN', 'Do you want to stop all the servers?')
+			command = yesNoInput(input('(Y/n) > '))
 			logToFile('> ' + command)
 		else:
 			command = 'y'
@@ -834,7 +837,7 @@ def stop(server = None, Force = False):
 			mPrint('INFO', 'Comando stop annullato')
 			mPrint('INFO', f'I server rimarranno online.')
 			return -2
-
+		#else
 		for x in range(len(online)):
 			if online[x][1] == 1:
 				try:
@@ -857,12 +860,8 @@ def stop(server = None, Force = False):
 			if online[server][1] == 1:
 				sendRcon(server, 'tellraw @a', mes)
 				if not Force:
-					mPrint('WARN', 'Do you want to stop the server? (Y/n): ')
-					print('> ', end='')
-					command = input().lower()
-					if command == '':
-						command = 'y'
-
+					mPrint('WARN', 'Do you want to stop the server?')
+					command = yesNoInput(input('(Y/n) > '))
 					logToFile('> ' + command)
 				else:
 					command = 'y'
@@ -889,8 +888,8 @@ def stop(server = None, Force = False):
 
 def restart(server = None):#not yet
 	mPrint('FUNC', f'restart({server})')
-	if server == None:
 
+	if server == None:
 		mPrint('INFO', 'Provo a riavviare tutti i server.')
 		stopping = []
 		for x in range(len(online)):
@@ -898,11 +897,12 @@ def restart(server = None):#not yet
 				stopping.append(x)
 		if len(stopping) == 0:
 			mPrint('INFO', 'Non ho trovato nessun server online!')
-			mPrint('INFO', '\'set help\' per aiuto')
+			mPrint('INFO', 'usa: \'check help\' per aiuto')
+			mPrint('DEV', '\'set help\' per aiuto')
 			return 0
 
-		rPrint(f'Vuoi davvero riavviare {len(stopping)} server? (Y/N)')
-		command = input('(Y/N)> ').lower()
+		rPrint(f'Vuoi davvero riavviare {len(stopping)} server?')
+		command = yesNoInput(input('(Y/n)> '))
 		if command != 'y':
 			logToFile(f'> {command}')
 			return 0
@@ -927,7 +927,7 @@ def restart(server = None):#not yet
 		try:
 			stop(server, True)
 			online[server][1] = 2
-			time.sleep(1)
+			time.sleep(5) ##FIXME <<<<<<<<<< maybe get a return from rcon?? IDK MAYBE MULTITHREADING!!!!
 			start(server)
 		except Exception:
 			prtStackTrace()
