@@ -774,7 +774,6 @@ def stop(server = None, Force = False):
 			server = -1
 		mPrint('WORK', f'server = {server}')
 
-	mes = str(tellraw.make(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
 	if server == -1: #Multiple servers are online, but are they really?
 		mPrint('WORK', 'Checking all servers')
 		#force online list to be true online
@@ -810,8 +809,10 @@ def stop(server = None, Force = False):
 		except Exception:
 			prtStackTrace()
 
+	mes = str(tellraw.make(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
+
 	#those send
-	if server < 0: #-1|all
+	if server < 0: #-1| target all online server
 		for x in range(len(online)):
 			if online[x][1] == 1:
 				try:
@@ -819,13 +820,17 @@ def stop(server = None, Force = False):
 				except Exception:
 					prtStackTrace()
 		if not Force:
-			mPrint('WARN', 'Do you want to stop all the servers? (Y/N): ')
+			mPrint('WARN', 'Do you want to stop all the servers? (Y/n): ')
 			print('> ', end='')
 			command = input().lower()
+			if command == '':
+				command = 'y'
+
 			logToFile('> ' + command)
 		else:
 			command = 'y'
-		if command.lower() != 'y':
+
+		if command != 'y':
 			mPrint('INFO', 'Comando stop annullato')
 			mPrint('INFO', f'I server rimarranno online.')
 			return -2
@@ -844,7 +849,7 @@ def stop(server = None, Force = False):
 				online[x][1] = 0
 				mPrint('INFO', 'Fatto!')
 				mPrint('DEV', f'online[x][1] is now: {online[x][1]}')
-	else: #specific
+	else: # only target one server
 		if server >= len(online):
 			mPrint('WARN', f'Il server {server} non esiste, ho rilevato solo {len(online)} server')
 			mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
@@ -852,13 +857,17 @@ def stop(server = None, Force = False):
 			if online[server][1] == 1:
 				sendRcon(server, 'tellraw @a', mes)
 				if not Force:
-					mPrint('WARN', 'Do you want to stop the server? (Y/N): ')
+					mPrint('WARN', 'Do you want to stop the server? (Y/n): ')
 					print('> ', end='')
 					command = input().lower()
+					if command == '':
+						command = 'y'
+
 					logToFile('> ' + command)
 				else:
 					command = 'y'
-				if command.lower() == 'y':
+
+				if command == 'y':
 					try:
 						mPrint('INFO', 'mando una richiesta al server...')
 						sendRcon(server, 'stop')
@@ -868,6 +877,7 @@ def stop(server = None, Force = False):
 				else:
 					mPrint('INFO', 'Comando stop annullato')
 					mPrint('INFO', f'Il server {online[server][0]} è ancora online.')
+					return -2
 
 			else:
 				mPrint('INFO', f'Il server {online[server][0]} è già offline')
@@ -875,9 +885,7 @@ def stop(server = None, Force = False):
 				online[server][1] = 0
 				mPrint('INFO', 'Fatto!')
 				mPrint('DEV', f'online[server][1] is now: {online[server][1]}')
-
-
-	
+				return -1
 
 def restart(server = None):#not yet
 	mPrint('FUNC', f'restart({server})')
