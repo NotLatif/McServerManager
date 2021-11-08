@@ -8,7 +8,6 @@ try:
 	import shutil
 	import configobj
 	import importlib.util
-	import msvcrt
 	from colorama import Fore, Back, Style, init
 	from distutils.dir_util import copy_tree
 	from configobj import ConfigObj
@@ -142,7 +141,6 @@ class Servers:
 
 	def getData(self):
 		return([self.name, self.state, self.port, self.rcon])
-
 
 #  ----------- Script Functions -----------
 def prtStackTrace(Fatal = False):
@@ -1691,6 +1689,8 @@ def main(run):
 		mPrint('INFO', 'Bye bye.')
 
 	return 0
+
+# -------- COMMANDS --------
 # start <serverID> [port]	//serverID can be string
 # stop <serverID> [port]	//serverID can be string
 # restart <serverID>		//serverID can be string
@@ -1712,13 +1712,9 @@ def main(run):
 # dev						//exits sctipt so you can call functions and shit (IDLE shell)
 
 # -------- MAINLOOP --------
-#Commands: start, sync, ip | server-ip, port | server-port, rcon, log, end, h, ls; online, set
-
-crashcount = 0
 autoBack = False
-seconds = 0 
+seconds = 0 #autobackup (not yet implemented)
 while run:
-	maxCrashes = 4
 	try:
 		resp = main(run)
 		if resp == -2:
@@ -1737,14 +1733,10 @@ while run:
 				subprocess.Popen(["python", "zscripts\\autobackup.py"] + backnames, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 	except Exception:
-		if crashcount > maxCrashes:
-			prtStackTrace()
-			print(f'Il manager è crashato {crashcount} volte, guarda il log per informazioni.')
-			input('Premi invio per uscire')
-			exit()
-		else:
-			prtStackTrace()
-			continue
+		prtStackTrace()
+		print(f'Il manager è crashato, guarda il log per informazioni.')
+		input('Premi invio per uscire')
+		exit()
 
 
 # __    __  __    __    _____    ____  _   _  ____  ___     ___  _____  ____  ____    ___  __  __  ___  _  _  ___ 

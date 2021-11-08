@@ -1,8 +1,9 @@
 # TODO
 - ✔ Maybe change online dict to class? could benefit i think
+- ✔ When script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
 - ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE 
 - ⭐⭐⭐hot add server
-- ⭐⭐⭐when script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
+- ⭐⭐⭐ Maybe change back dict to class? just like online!
 - ⭐⭐automate first server start
 - ⭐⭐add per-server settings
 - ⭐⭐Fix de #include mess for local scripts do it properly (this matters <<<)
@@ -26,7 +27,7 @@
 - ⭐LOOK THROUGH EVERY FUCKING COMMAND
 - ⭐⭐⭐⭐⭐⭐ start / stop / restart functions
 - ⭐⭐ Stopping Server1 halts until you enter in game console
-- ✔`in server[i]` syntax
+- ✔ `in server[i]` syntax
 
 # CODE REVIEW
 - verifyStatus()
