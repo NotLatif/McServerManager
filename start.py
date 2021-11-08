@@ -7,9 +7,8 @@ try:
 	import traceback
 	import shutil
 	import configobj
-	import importlib.util
 	import json
-	from colorama import Fore, Back, Style, init
+	from colorama import Fore, Style, init
 	from distutils.dir_util import copy_tree
 	from configobj import ConfigObj
 	from datetime import datetime
@@ -26,7 +25,7 @@ except ModuleNotFoundError:
 print(Style.BRIGHT)
 
 log = True
-bmx = 15
+maxBackupFolders = 15
 rconPort = 25575
 rconPsw = 'Rcon69Psw'
 #online = {}
@@ -169,7 +168,6 @@ class makeTellraw:
 
     def __str__(self):
         return self.get_json()
-
 def checkColor(color):
     if color == 'dark_red':
         return True
@@ -201,8 +199,6 @@ def checkColor(color):
         return True
     else:
         return False
-
-print('[tellaraw.py] initialized.')
 
 #  ----------- Script Functions -----------
 def prtStackTrace(Fatal = False):
@@ -1547,8 +1543,7 @@ try:
 	loadServers()
 
 	mPrint('INFO', 'Loading other properties...')
-	bmx = config['max-backup-folders']
-
+	maxBackupFolders = config['max-backup-folders']
 
 except Exception:
 	prtStackTrace(True)
