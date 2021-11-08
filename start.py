@@ -1200,8 +1200,8 @@ def delbackup(backupID = None):
 	mPrint('WARN', f'Sei sicuro di voler eliminare il backup del giorno {back[backupID][1]}?')
 	mPrint('WARN', 'QUEI DATI ANDRANNO PERSI PER SEMPRE (un sacco di tempo)')
 	
-	if input('(Y/N)> ').lower() == 'y':
-		logToFile('(Y/N)> Y')
+	if yesNoInput(input('(Y/n)> ')) == 'y':
+		logToFile('(Y/n)> Y')
 		path = 'backups\\' + back[backupID][1]
 		try:
 			shutil.rmtree(path)
@@ -1492,8 +1492,8 @@ def main(run):
 
 	elif command[0] == 'sync':
 		if len(command) == 1: #Sync all server
-			rPrint('Vuoi sincronizzare i settings con tutti i server (Y/N): ')
-			if input().lower() == 'y':
+			rPrint('Vuoi sincronizzare i settings con tutti i server (Y/n): ')
+			if yesNoInput(input()) == 'y':
 				changeProperties('all')
 				
 		elif len(command) == 2: #Sync parameter
@@ -1559,7 +1559,7 @@ def main(run):
 		mPrint('INFO', 'log is now: ' + str(log))
 
 	elif command[0] == 'end':
-		#TODO 0 CHECK ONLINE
+		#TODO 0 CHECK ARE THERE ONLINE SERVERS?
 		crash()
 
 	elif command[0] == 'h' or command[0] == 'help' or command[0] == '?':

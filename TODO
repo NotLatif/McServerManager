@@ -1,32 +1,47 @@
-add requirements.txt
+# TODO
+- add `requirements.txt`
+- Fix de #include mess for local scripts do it properly (this matters <<<)
+- AT startup:
+	- Check if servers are on (fast or threads?)
+    - timeout?
+- print something randomly in server if online
+- automate first server start
+- hot add server
+- check if port is forwarded at startup
+- Maybe change online dict to class? could benefit i think
+- add per-server settings
+- TODO 0
 
-Fix de #include mess for local scripts do it properly (this matters <<<)
+# FIXME
+- FIXME 0 idToBack() does not exist
+- FIXME 1 (info on comment)
+- FIXME 2 timeout? really?
+- FIXME 3 autobackup function implement
+
+# TESTING
+- what if dirs change runtime?
+- LOOK THROUGH EVERY FUCKING COMMAND
+- What happens if start.bat is not there
+
+# CODE REVIEW
+- verifyStatus()
+- batter():
+	- I file che crea vanno bene per lo script ma non sono utilizzabili dall'utente in maniera manuale
+	- Poss. sol:
+		- Crea 2 file bat
+		- Modifica il file bat prima di far partire il server
+		
+# REMINDERS
+- add everything in help
 
 #  -------------------------- Structures --------------------------  #
 Backups dict:
-	back{id: [aaId, date, [IDs]} 
+	back{id: [aaId, date, [IDs]} | `back[id] = [aaId, date, [IDs]`
     	        0     1    2[]  
 
-Dict of online server:
-	online = {onlineId: ['Server', state, port, rcon]}  
+Online dict:
+	online = {onlineId: ['Server', state, port, rcon]}  |  `online[onlineId] = ['Server', state, port, rcon]`
 	state can be: 0:offline, 1:online, 2:restarting
-Maybe change this to class? could benefit i think
-
-#  --------------------------------------------------------------------  #
-
-#TODO
-
-AT startup:
-	Check if servers are on (fast or threads?)
-    timeout?
-
-#print something randomly in server if online
-#automate first server start
-#hot add server
-check if port is forwarded at startup
-what if dirs change runtime?
-
-verifyStatus() <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #  -------------------------- BACKUP RELATED --------------------------  #
 
 #autobackup: [time (minutes)] multithreading??
@@ -34,32 +49,4 @@ restorebackup()
 
 #  --------------------------------------------------------------------  #
 
-change log naming to yyyy - mm - dd
 
-add 
-logToFile('> ' + command)
-to
-yesNoInput()
-
-#reminders
-	add everything in help
-		set command
-	LOOK THROUGH EVERY FUCKING COMMAND (testing lmao)
-
-
-
-FIXME 0 idToBack() does not exist
-FIXME 1 (info on comment)
-FIXME 2 timeout? really?
-FIXME 3 autobackup function implement
-
-TODO 0
-
-batter():
-	I file che crea vanno bene per lo script ma non sono utilizzabili dall'utente in maniera manuale
-
-	Poss. sol:
-		Crea 2 file bat
-		Modifica il file bat prima di far partire il server
-	Test:
-		What happens if start.bat is not there
