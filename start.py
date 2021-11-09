@@ -13,7 +13,7 @@ try:
 	from configobj import ConfigObj
 	from datetime import datetime
 	from shutil import copyfile
-	from zipfile import ZipFilse 
+	from zipfile import ZipFile
 	from mcrcon import MCRcon
 	from requests import get
 	from glob import glob
