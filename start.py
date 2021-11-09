@@ -1,4 +1,4 @@
-# TODO FIXME XXX HACK NOTE BUG
+# TODO FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW, NB, BUG, QUESTION, COMBAK, TEMP, DEBUG, OPTIMIZE
 try:
 	import os
 	import subprocess
@@ -507,28 +507,15 @@ def batFixer(serverID, xmx = None): #creates a raw batch file and sends it to ba
 		x = serverID
 		batter(x, batCopy, serverID, s)
 
-def startChangeProperties(key, value, serverID):# changes only one property for a specific (server.properties) file
+def changeSingleProperty(key, value, serverID):# changes only one property for a specific (server.properties) file
 	mPrint('FUNC', f'startChangeProperties({key}, {value}, {serverID})')
-	paths = dirGrab() #FIXME 6 
-	serverDir = paths[int(serverID)]
-	serverDir = server + '\\server.properties'
+
+	serverDir = server[serverID].name + '\\server.properties'
+	
 	temp_cfg = ConfigObj(serverDir)
-	temp_cfg[key] = int(value)
-	temp_cfg.write()
-	remQuote(server)
-
-def changeSingleProperty(key, value, name): # FIXME 8 SEEMS THE SAME AS startChangeProperties
-	mPrint('FUNC', f'singleChangeProperties({key}, {value}, {name})')
-	name = name + '\\server.properties'
-	temp_cfg = ConfigObj(name)
-	mPrint('DEV', f'name:{name}')
-
 	temp_cfg[key] = value
 	temp_cfg.write()
-	remQuote(name)
-
-	mPrint('INFO', 'server adapted: '+ str(name))
-	mPrint('DEV', 'changed key: ' + key + ", to value:" + value)
+	remQuote(serverDir)
 
 def rconSync(rconPort=25575): #sets an rconPort for all the servers found
 	mPrint('FUNC', f'rconSync({rconPort})')
@@ -833,7 +820,7 @@ def start(serverID, port=None):#Starts one/all server/s
 	else:
 		mPrint('INFO', 'running on custom server port: ' + str(port))
 		port = int(port)
-		startChangeProperties('server-port', port, serverID)
+		changeSingleProperty('server-port', port, serverID)
 
 	s = dirGrab()
 	#Start
@@ -842,7 +829,7 @@ def start(serverID, port=None):#Starts one/all server/s
 		mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
 		return -1
 
-	for x in range(Servers.serverCount): #FIXME 5 server[i] is not iterable
+	for x in range(Servers.serverCount):
 		if s[serverID] == server[x].name and server[x].state != 0: #Controllo se il server che sto facendo partire si già online
 			mPrint('INFO', 'Controllo lo stato del server...')
 			if Servers.isAlive(config['server-ip'], port):
@@ -875,10 +862,6 @@ def start(serverID, port=None):#Starts one/all server/s
 	file = s[serverID]+r'\start.bat'
 	mPrint('WORK', f'builded path for {str(s[serverID])} ({file})')
 
-	if port != config['server-port']:
-		mPrint('DEV', f'if port != {config["server-port"]}: True')
-		changeSingleProperty('server-port', str(port), s[serverID])
-
 	try:
 		p = subprocess.Popen(file, creationflags=subprocess.CREATE_NEW_CONSOLE)
 		mPrint('INFO', 'Server initialized.')
@@ -901,16 +884,17 @@ def stop(serverID = None, Force = False): #Stops one/all server/s
 	mPrint('FUNC', f'stop({serverID})')
 
 	#preparazione
-	try:
-		if serverID.isnumeric() == False:
-			mPrint('WORK', 'Server is not numeric')
-			serverID = txtToId(serverID)
-			mPrint('WORK', f'server = {serverID}')
-		else:
+	if serverID is not None:
+		try:
+			if serverID.isnumeric() == False:
+				mPrint('WORK', 'Server is not numeric')
+				serverID = txtToId(serverID)
+				mPrint('WORK', f'server = {serverID}')
+			else:
+				serverID = int(serverID)
+		except AttributeError:
+			mPrint('WORK', 'Server is numeric')
 			serverID = int(serverID)
-	except AttributeError:
-		mPrint('WORK', 'Server is numeric')
-		serverID = int(serverID)
 
 	if serverID is None: #no input -> online/check if multiple are on
 		mPrint('WORK', 'Server is None')

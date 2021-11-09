@@ -21,10 +21,8 @@
 - FIXME 0 idToBack() does not exist
 - FIXME 2 multithreading excuse
 - FIXME 3 autobackup function implement
-- FIXME 5 INFO ON FILE CHECK NOW (consigli: crea funzione nella classe Servers)
 - FIXME 6 could use `server[ServerID].name` ?? (consider for every `dirGrab()` call)
 - FIXME 7 I don't get it, check later
-- FIXME 8 function does the same thing as startChangeProperties()
 - FIXME 9 TOTAL BULLSHIT FIND A WAY AROUND IT 
 - FIXME 10 info on line
 
