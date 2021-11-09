@@ -17,7 +17,6 @@
 - TODO 0
 
 # FIXME
-- inconsistent use of i and x in for loops
 - FIXME 0 idToBack() does not exist
 - FIXME 2 multithreading excuse
 - FIXME 3 autobackup function implement
