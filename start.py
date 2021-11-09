@@ -210,6 +210,9 @@ def checkColor(color):
 
 #  ----------- Script Functions -----------
 def prtStackTrace(Fatal = False): #prints most recent error
+	'''
+		Simple test
+	'''
 	if Fatal:
 		mPrint('FATAL', '\n' + traceback.format_exc())
 		global run
