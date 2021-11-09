@@ -7,19 +7,27 @@
 - ⭐⭐⭐ Maybe change back dict to class? just like online!
 - ⭐⭐automate first server start
 - ⭐⭐add per-server settings
+- ⭐automatically set bungeecord settings (command)
 - ⭐AT startup:
 	- Check if servers are on (fast or threads?)
     - timeout?
 - ⭐print something randomly in server if online
 - ⭐check if port is forwarded at startup
+- dirGrab() function seems to be used A LOT (FIXME 6 could lower the usage)
 - TODO 0
 
 # FIXME
 - FIXME 0 idToBack() does not exist
+- FIXME 1 seems good to me but check
 - FIXME 2 timeout? really?
+- FIXME 2 ? use new notation
 - FIXME 3 autobackup function implement
 - FIXME 4 check that
 - FIXME 5 INFO ON FILE CHECK NOW (consigli: crea funzione nella classe Servers)
+- FIXME 6 could use `server[ServerID].name` ?? (consider for every `dirGrab()` call)
+- FIXME 7 I don't get it, check later
+- FIXME 8 function does the same thing as startChangeProperties()
+- FIXME 9 TOTAL BULLSHIT FIND A WAY AROUND IT 
 
 # TESTING
 - ⭐⭐⭐what if dirs change runtime?
@@ -30,6 +38,8 @@
 - ✔ `in server[i]` syntax
 
 # CODE REVIEW
+- printOnline() and listOnline() with ls()
+- sendRcon()
 - verifyStatus()
 - batter():
 	- I file che crea vanno bene per lo script ma non sono utilizzabili dall'utente in maniera manuale
