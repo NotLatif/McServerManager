@@ -559,7 +559,7 @@ def rconSync(rconPort=25575): #sets an rconPort for all the servers found
 				temp_cfg['enable-rcon'] = 'true'
 				if not 'rcon.port' in temp_cfg:
 					temp_cfg['rcon.password'] = newRcon
-				if not 'rcon.port' in temp_cfg:
+				if not 'rcon.password' in temp_cfg:
 					temp_cfg['rcon.password'] = rconPsw
 				temp_cfg.write()
 				remQuote(path)
@@ -614,13 +614,13 @@ def changeProperties(key, serverID=-1, syncRcon=True): #prepares data for workCh
 		mPrint('DEV', 'All servers')
 		for name in dirs:
 			workChangeProperties(key, name)
-			if syncRcon:
-				rconSync()
-	else: #cambia il server scelto FIXME 7 
+	else: #cambia il server scelto
 		mPrint('DEV', f'Server {serverID}')
 		workChangeProperties(key, dirs[int(serverID)])
-		if syncRcon:
-			rconSync()
+
+	if syncRcon:
+		rconSync()
+
 	return 0
 
 #Config modifiers (properties.ini AND server.properties)
