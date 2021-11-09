@@ -2,7 +2,8 @@
 - ✔ Maybe change online dict to class? could benefit i think
 - ✔ When script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
 - ✔ Fix de #include mess for local scripts do it properly
-- ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE 
+- ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
+- ⭐⭐⭐⭐ check placeholder.bat when starting 
 - ⭐⭐⭐hot add server
 - ⭐⭐⭐ Maybe change back dict to class? just like online!
 - ⭐⭐automate first server start
@@ -13,22 +14,22 @@
     - timeout?
 - ⭐print something randomly in server if online
 - ⭐check if port is forwarded at startup
-- dirGrab() function seems to be used A LOT (FIXME 6 could lower the usage)
+- dirGrab() function seems to be used A LOT (FIXME 6 could lower the usage), possible BUG: (TESTING *1)
 - TODO 0
 
 # FIXME
 - FIXME 0 idToBack() does not exist
 - FIXME 2 multithreading excuse
 - FIXME 3 autobackup function implement
-- FIXME 4 check that
 - FIXME 5 INFO ON FILE CHECK NOW (consigli: crea funzione nella classe Servers)
 - FIXME 6 could use `server[ServerID].name` ?? (consider for every `dirGrab()` call)
 - FIXME 7 I don't get it, check later
 - FIXME 8 function does the same thing as startChangeProperties()
 - FIXME 9 TOTAL BULLSHIT FIND A WAY AROUND IT 
+- FIXME 10 info on line
 
 # TESTING
-- ⭐⭐⭐what if dirs change runtime?
+- ⭐⭐⭐what if dirs change runtime? *1
 - ⭐⭐What happens if start.bat is not there
 - ⭐LOOK THROUGH EVERY FUCKING COMMAND
 - ⭐⭐⭐⭐⭐⭐ start / stop / restart functions

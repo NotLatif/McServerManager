@@ -1,3 +1,4 @@
+# TODO FIXME XXX HACK NOTE BUG
 try:
 	import os
 	import subprocess
@@ -29,6 +30,7 @@ log = True
 maxBackupFolders = 15
 rconPort = 25575
 rconPsw = 'Rcon69Psw'
+batPlaceholderText = 'cd *PATH*\njava *MaxHeap* -jar *JARFILE* nogui' #FIXME 10: should be loaded at script startup
 
 run = True
 now = str(datetime.now().strftime('%d-%m-%Y_%H_%M_%S'))
@@ -433,38 +435,35 @@ def loadServers(): #scans the directory and adds the servers in the server[] Lis
 
 def batter(i, batCopy, serverID, s): #adds start.bat to server folder configured for script usage
 	mPrint('FUNC', f'batter({i}, {batCopy}, {serverID}, {s})')
-	batPaste = batCopy
 	
-	path = s[i] + '\\start.bat'
-	if not os.path.isfile(path): #FIXME 4
-		mPrint('IMPORTANT', f'IL FILE {path} NON ESISTE, IO TE LO FACCIO MA VEDI CHE IL .jar È SCRITTO server.jar QUINDI ATTENTO CHE SIA GIUSTO SENNO NON PARTE IL SERVER OK?')
+	path = server[i].name + '\\start.bat' # possible BUG: what if server folders don't match with server count?
+	if not os.path.isfile(path):
+		mPrint('IMPORTANT', f'IL FILE {path} NON ESISTE. Ne creo uno nuovo')
+		mPrint('IMPORTANT', f'controlla che il server si chiami {server[i].name}\\server.jar')
 		try:
-			data = getDataFile('zscripts\\start.bat')
+			data = getDataFile('zscripts\\placeholder.bat')
 			writeDataFile(path, data)
 		except FileNotFoundError:
-			writeDataFile('zscripts\\start.bat', 'for fuck\'s sake don\'t delete me')
-			data = getDataFile('zscripts\\start.bat')
+			writeDataFile('zscripts\\placeholder.bat', batPlaceholderText)
 			writeDataFile(path, data)
 
-	if log:
-		mPrint('WORK', f'batFixer server: {s[i]}')
-		mPrint('WORK', f'start.bat path: {path}')
+	mPrint('WORK', f'start.bat path: {path}')
 			
-	jarFile = getDataFile(s[i]+'\\start.bat')
+	jarFile = getDataFile(server[i].name+'\\start.bat')
 	File = jarFile.split(' ')
 
-	mPrint('DEV', File)
-	for x in range(len(File)):
+	mPrint('DEV', File) 
+	for x in range(len(File)): #BUG server.jar must be called 'server.jar' for this to work
 		if '.jar' in File[x]:
 			jarFile = File[x]
 			break
 		else:
 			jarFile = 'server.jar'
 			
-	batPaste = batCopy.replace('*JARFILE*', jarFile)
-	batPaste = batPaste.replace('*PATH*', s[i])
-	writeDataFile(path, batPaste)
-	mPrint('DEV', 'batcopy: '+batPaste)
+	batCopy = batCopy.replace('*JARFILE*', jarFile)
+	batCopy = batCopy.replace('*PATH*', server[i].name)
+	writeDataFile(path, batCopy)
+	mPrint('DEV', 'batcopy: '+batCopy)
 
 def batFixer(serverID, xmx = None): #creates a raw batch file and sends it to batter ^ 
 	mPrint('FUNC', f'batFixer({serverID}, {xmx})')
@@ -472,31 +471,34 @@ def batFixer(serverID, xmx = None): #creates a raw batch file and sends it to ba
 	if xmx == None:
 		xmx = config['-Xmx']
 
-	s = dirGrab()
+	s = Servers.serverCount # TEST
 
 	placeholder = 'zscripts\\placeholder.bat'
 	try:
 		batCopy = getDataFile(placeholder)
 	except FileNotFoundError:
-		newPlaceholder = 'cd *PATH*\njava *MaxHeap* -jar *JARFILE* nogui'
-		writeDataFile(placeholder, newPlaceholder)
+		writeDataFile(placeholder, batPlaceholderText)
 		batCopy = getDataFile(placeholder)
 
-	if 'G' in str(xmx):
-		num = xmx.replace('G', '')
-		xmx = str(int(int(num)*1024))
-	elif 'M' in str(xmx):
-		num = xmx.replace('M', '')
-		xmx = num
-	else:
-		mPrint('WARN', 'Invalid -Xmx format, check properties.ini')
-		mPrint('WARN', 'Temporarily setting -Xmx to -Xmx2048M')
-		xmx = '2048'
+	try:
+		if 'G' in str(xmx):
+			num = xmx.replace('G', '')
+			xmx = str(int(int(num)*1024))
+		elif 'M' in str(xmx):
+			num = xmx.replace('M', '')
+			xmx = num
+		else:
+			mPrint('WARN', 'Invalid -Xmx format, check properties.ini')
+			mPrint('WARN', 'Temporarily setting -Xmx to -Xmx2048M')
+			xmx = '2048'
+	except:
+		prtStackTrace()
+		return -1
 
 	batCopy = batCopy.replace('*MaxHeap*', f'-Xmx{xmx}M')
 
 	if serverID == -1:
-		for x in range(len(s)):
+		for x in range(s):
 			batter(x, batCopy, serverID, s)	
 	else:
 		x = serverID
