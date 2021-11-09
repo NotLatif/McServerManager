@@ -142,6 +142,9 @@ class Servers:
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			return s.connect_ex((ip, port)) == 0
 
+class Cfg(): # too much work to do rn, will COMBAK later
+	pass
+
 class makeTellraw:
 	##Code is not mine, but can't find the source
     text = ''
@@ -1195,18 +1198,14 @@ def backSync(): # ???
 
 def backup(serverID=-2): #-1: all; -2:online
 	mPrint('FUNC', f'backup({serverID})')
-	now = datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
+	
 	if not os.path.exists('backups'):
 		os.mkdir('backups')
 		mPrint('INFO', 'Created backup directory.')
 	if serverID==-1: #all
 		for x in range(Servers.serverCount):
-			if server[x].state == 1:
-				if not (Servers.isAlive(config['server-ip'], server[x].port)):
-					mPrint('WARN', 'Un server segnalato online è in realtà offline. Aggiorno la lista e creo un backup')
-					server[x].state = 0
-					
 			backup(x)
+
 	elif serverID==-2: #online
 		for x in range(Servers.serverCount):
 			if server[x].state == 1:
@@ -1220,14 +1219,13 @@ def backup(serverID=-2): #-1: all; -2:online
 			mPrint('WARN', f'Server {server} non trovato.')
 			return -1
 
-		now = datetime.now().strftime('%d-%m-%Y, %H_%M')
+		now = datetime.now().strftime('%Y/%m/%d-%H:%M:%S')
 
 		if os.path.exists(f'backups\\{now}\\{server[serverID].name}'):
-			mPrint('ERROR', 'Hai creato un backup meno di un minuto fa!') #FIXME 3
+			mPrint('ERROR', 'Hai creato un backup meno di un minuto fa!')
 		else:
-
 			if server[serverID].state == 1:
-				if Servers.isAlive(config['server-ip'], server[serverID].port):
+				if Servers.isAlive(config['server-ip'], server[serverID].port): #FIXME 4
 					splash = getSplash('backup')
 					sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='yellow', bold=True)))
 					rconSave(serverID)
@@ -1242,7 +1240,6 @@ def backup(serverID=-2): #-1: all; -2:online
 						break
 				else:
 					backDir = f'backups\\{now}\\{server[serverID].name}'
-
 
 			if len(back) == 0:
 				backDir = f'backups\\{now}\\{server[serverID].name}'

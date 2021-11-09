@@ -3,10 +3,10 @@
 - ✔ When script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
 - ✔ Fix de #include mess for local scripts do it properly
 - ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
+- ⭐⭐⭐⭐⭐ Maybe change back dict to class? just like online (now Server)!
 - ⭐⭐⭐⭐ check placeholder.bat when starting 
 - ⭐⭐⭐⭐config[] is an hassle to manage... maybe class???
 - ⭐⭐⭐hot add server
-- ⭐⭐⭐ Maybe change back dict to class? just like online (now Server)!
 - ⭐⭐automate first server start
 - ⭐⭐add per-server settings
 - ⭐automatically set bungeecord settings (command)
@@ -23,6 +23,7 @@
 - FIXME 0 idToBack() does not exist
 - FIXME 2 multithreading excuse
 - FIXME 3 autobackup function implement
+- FIXME 4 tell server to save world
 - FIXME 6 could use `server[ServerID].name` ?? (consider for every `dirGrab()` call)
 - FIXME 9 TOTAL BULLSHIT FIND A WAY AROUND IT 
 - FIXME 10 info on line
@@ -52,7 +53,7 @@
 
 #  -------------------------- Structures --------------------------  #
 Backups dict:
-	back{id: [aaId, date, [IDs]} | `back[id] = [aaId, date, [IDs]`
+	back{id: [aaId, date, [IDs]} | `back[id] = [aaId, date, [IDs]]`
     	        0     1    2[]  
 
 Online Class:
