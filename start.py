@@ -28,6 +28,7 @@ print(Style.BRIGHT)
 
 log = True
 maxBackupFolders = 15
+maxServers = 0
 rconPort = 25575
 rconPsw = 'Rcon69Psw'
 batPlaceholderText = 'cd *PATH*\njava *MaxHeap* -jar *JARFILE* nogui' #FIXME 10: should be loaded at script startup
@@ -48,16 +49,15 @@ class Servers:
 	def __init__(self, name, state, port, rcon):
 		mPrint('DEV', f'Called class contructor Servers({name}, {state}, {port}, {rcon})')
 		if(port <= 1025 or port >= 65535):
-			port = config['server-port']
+			port = int(config['server-port'])
 		if(rcon <= 1025 or rcon >= 65535):
-			rcon = config['rcon-port']
+			rcon = int(config['rcon-port'])
 			
 		self.name = name	#char: folder name
 		self.state = state	#0: offline | 1: online | 2: restarting
 		self.port = port	#server-port
 		self.rcon = rcon	#rcon-port
 		#self.psw = psw		#rcon-password
-
 		Servers.serverCount += 1
 
 	#name set/get
@@ -421,9 +421,9 @@ def loadServers(): #scans the directory and adds the servers in the server[] Lis
 		if sPort < 0:
 			mPrint('ERROR', f'valore server-port non valido nel server: {serverName}')
 			mPrint('INFO', 'porto la server-port a 25565.') ##SOLO UN PLACEHOLDER, VERRÀ CAMBIATO DURANTE IL LOADING
-			sPort = config['server-port']
-		if sPort >= 25575:
-			mPrint('WARN', f'server: {serverName} ha una porta >= a 25575.')
+			sPort = int(config['server-port'])
+		if sPort >= int(config['rcon-port']):
+			mPrint('WARN', f'server: {serverName} ha una porta >= a { config["rcon-port"] }.')
 			mPrint('INFO', 'per evitare problemi porto la server-port a 25565.')
 			sPort = 25565
 		server.append(Servers(str(serverName), 0, sPort, rPort)) #Create Servers objects
@@ -517,9 +517,9 @@ def changeSingleProperty(key, value, serverID):# changes only one property for a
 	temp_cfg.write()
 	remQuote(serverDir)
 
-def rconSync(rconPort=25575): #sets an rconPort for all the servers found
+def rconSync(rconPort): #sets an rconPort for all the servers found
 	mPrint('FUNC', f'rconSync({rconPort})')
-	if rconPort < 25575:
+	if rconPort < config['rcon-port']:
 		mPrint('WARN', f'rcon.port è impostato a {rconPort}')
 		mPrint('WARN', f'per prevenire problemi con le porte usate dai server')
 		mPrint('WARN', f'Impostare un numero maggiore/uguale a 25575.')
@@ -641,8 +641,8 @@ def modIp(newIp, sync=True): #changes ip config to newIp (user input)
 def modPort(newPort, sync=True): #changes port config to newPort (user input)
 	mPrint('FUNC', f'modPort({newPort}, {sync})')
 	if not (newPort == '' and newPort.isnumeric() == False and int(newPort) >= 0):
-		if newPort >=25575:
-			mPrint('ERROR', 'server-port can\'t be >= than 25575 for rcon to work.') # FIXME 9
+		if newPort >= int(config['rcon-port']):
+			mPrint('ERROR', 'server-port can\'t be >= than 25575 for rcon to work.')
 			return -1
 		else:
 			updateConfig('server-port', newPort)
@@ -1263,12 +1263,9 @@ def backup(serverID=-2): #-1: all; -2:online
 					mPrint('WARN', 'Il numero di backup supera il limite, elimino le cartelle in più')
 
 			os.mkdir(backDir)
-			
 			copy_tree(server[serverID].name, backDir)
 
-
 			mPrint('INFO', f'Fatto ({server[serverID].name})')
-
 			backSync()
 
 def autobackup(): #FIXME 3
@@ -1484,9 +1481,9 @@ try:
 		if(config['server-ip'] == '' or config['server-ip'].count('.')!=3 or not config['server-ip'].find('x') == -1): #kind of check if ip is good
 			mPrint('FATAL', 'Questo non è un problema del codice, il file properties è errato, Hai impostato correttamente l\'ip?')
 			crash()
-		if(config['server-port'] == '' or config['server-port'].isnumeric() == False or int(config['server-port']) >= 25575): #kind of check if port is good
+		if(config['server-port'] == '' or config['server-port'].isnumeric() == False or int(config['server-port']) >= int(config['rcon-port'])): #kind of check if port is good
 			mPrint('FATAL', 'Questo non è un problema del codice, il file properties è errato, Hai impostato correttamente la porta?')
-			mPrint('INFO', 'Ricorda che la porta deve essere < 25575')
+			mPrint('INFO', 'Ricorda che la porta deve essere < rcon-port')
 			crash()
 		mPrint('INFO', 'Inizializzo lo starter con ip: '+ str(config['server-ip'])+':'+str(config['server-port']))
 
@@ -1497,6 +1494,7 @@ try:
 
 	mPrint('INFO', 'Loading other properties...')
 	maxBackupFolders = config['max-backup-folders']
+	maxServers = int(config['rcon-port']) - int(config['server-port'])
 
 except Exception:
 	prtStackTrace(True)
@@ -1506,6 +1504,7 @@ rPrint('\n\n')
 rPrint('| Benvenuto nel server starter!           |')
 rPrint('| - Premi \'h\' per la lista dei comandi    |')
 rPrint('| Creato da Latif                         |')
+mPrint('INFO', f'| Puoi aprire {maxServers} server, usa \'info\' per informazioni')
 
 #cmds: bottom of function
 def main(run):

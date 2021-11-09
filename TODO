@@ -4,8 +4,9 @@
 - ✔ Fix de #include mess for local scripts do it properly
 - ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
 - ⭐⭐⭐⭐ check placeholder.bat when starting 
+- ⭐⭐⭐⭐config[] is an hassle to manage... maybe class???
 - ⭐⭐⭐hot add server
-- ⭐⭐⭐ Maybe change back dict to class? just like online!
+- ⭐⭐⭐ Maybe change back dict to class? just like online (now Server)!
 - ⭐⭐automate first server start
 - ⭐⭐add per-server settings
 - ⭐automatically set bungeecord settings (command)
@@ -14,6 +15,7 @@
     - timeout?
 - ⭐print something randomly in server if online
 - ⭐check if port is forwarded at startup
+- ⭐add info command
 - dirGrab() function seems to be used A LOT (FIXME 6 could lower the usage), possible BUG: (TESTING *1)
 - TODO 0
 
