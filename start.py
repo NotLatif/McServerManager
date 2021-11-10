@@ -1,3 +1,4 @@
+# TODO FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW, NB, BUG, QUESTION, COMBAK, TEMP, DEBUG, OPTIMIZE
 try:
 	import os
 	import subprocess
@@ -7,52 +8,218 @@ try:
 	import traceback
 	import shutil
 	import configobj
-	import importlib.util
-	import msvcrt
-	from colorama import Fore, Back, Style, init
+	import socket
+	import json
+	from colorama import Fore, Style, init
 	from distutils.dir_util import copy_tree
 	from configobj import ConfigObj
 	from datetime import datetime
 	from shutil import copyfile
-	from zipfile import ZipFile 
+	from zipfile import ZipFile
 	from mcrcon import MCRcon
 	from requests import get
 	from glob import glob
+	init()
 except ModuleNotFoundError:
 	print('FATAL \n' + str(traceback.format_exc()))
 	input('Premere invio per interrompere')
 
-init()
 print(Style.BRIGHT)
 
-tellrawspec = importlib.util.spec_from_file_location("tellraw.py", "zscripts\\tellraw.py")
-tellraw = importlib.util.module_from_spec(tellrawspec)
-tellrawspec.loader.exec_module(tellraw)
-
-autobackupspec = importlib.util.spec_from_file_location("tellraw.py", "zscripts\\autobackup.py")
-AutoBackup = importlib.util.module_from_spec(autobackupspec)
-autobackupspec.loader.exec_module(AutoBackup)
-
-
-
 log = True
-bmx = 15
+maxBackupFolders = 15
+maxServers = 0
 rconPort = 25575
 rconPsw = 'Rcon69Psw'
-online = {}
-#Dict of online server, strcuture: {onlineId: ['Server', state, port, rcon]}; state can be: 0:offline, 1:online, 2:restarting
+batPlaceholderText = 'cd *PATH*\njava *MaxHeap* -jar *JARFILE* nogui' #FIXME 10: should be loaded at script startup
 
 run = True
 now = str(datetime.now().strftime('%d-%m-%Y_%H_%M_%S'))
-logFile = str(f'logs\\{now}.txt') 
+logNow = str(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'))
+logFile = str(f'logs\\{logNow}.txt') 
 
 extIp = get('https://api.ipify.org').text
 
 back = {}
 #back{id: [aaId, date, [IDs]}
 
+server = [] #Will contain Servers objects
+class Servers:
+	serverCount = 0
+	def __init__(self, name, state, port, rcon):
+		mPrint('DEV', f'Called class contructor Servers({name}, {state}, {port}, {rcon})')
+		if(port <= 1025 or port >= 65535):
+			port = int(config['server-port'])
+		if(rcon <= 1025 or rcon >= 65535):
+			rcon = int(config['rcon-port'])
+			
+		self.name = name	#char: folder name
+		self.state = state	#0: offline | 1: online | 2: restarting
+		self.port = port	#server-port
+		self.rcon = rcon	#rcon-port
+		#self.psw = psw		#rcon-password
+		Servers.serverCount += 1
 
-def prtStackTrace(Fatal = False):
+	#name set/get
+	@property
+	def name(self):
+		return self.__name
+	@name.setter #FIXME name should be read-only
+	def name(self, name):
+		self.__name = name
+	
+	@property
+	def state(self):
+		return self.__state
+	@state.setter
+	def state(self, state):
+		try:
+			state = int(state)
+			if not (0 <= state <= 2): ##OMG THIS IS SO COOL WTFFF
+				state = None
+		except ValueError:
+			state = state.lower()
+			if state == 'online':
+				state = 1
+			elif state == 'offline':
+				state = 0
+			elif state == 'restarting':
+				state = 2
+			else:
+				state = None
+
+		if(state == None):
+			mPrint('FATAL', 'Incorrect server state')
+			crash()
+		self.__state = state
+	
+	#port set/get
+	@property
+	def port(self):
+		return self.__port
+	@port.setter
+	def port(self, port):
+		self.__port = port
+
+	#rcon set/get
+	@property
+	def rcon(self):
+		return self.__rcon
+	@rcon.setter
+	def rcon(self, rcon):
+		self.__rcon = rcon
+
+	# Object functions
+		## return online state
+	def isOnline(self):
+		mPrint('FUNC', f'Servers.isOnline(self)')
+		if self.state == 1:
+			return True
+		else:
+			return False
+
+	def setParam(self, param, value):
+		mPrint('FUNC', f'Servers.setParam(self, {param}, {value})')
+		if(param == 'name'):
+			self.name = value
+		elif(param == 'state'):
+			self.state = value
+		elif(param == 'port'):
+			self.port = value
+		elif(param == 'rcon'):
+			self.rcon = value
+		else:
+			mPrint('ERROR', f'Wrong value for Servers.setParam({param}, {value})')
+
+	def getData(self):
+		mPrint('FUNC', f'Servers.getData(self)')
+		return([self.name, self.state, self.port, self.rcon])
+	
+	# Class Functions
+		## port checking
+	def isAlive(ip, port):
+		mPrint('FUNC', f'Servers.isAlive({ip}, {port})')
+		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+			return s.connect_ex((ip, port)) == 0
+
+class Backups:
+	def __init__(self, aaID, date, serverIDs) -> None:
+		pass
+
+class Cfg(): # too much work to do rn, will COMBAK later
+	pass
+
+class makeTellraw:
+	##Code is not mine, but can't find the source
+    text = ''
+    color = 'white'
+    bold = False
+
+    def __init__(self, **kwargs):
+        self.__json = {}
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                self.__setattr__(k, v)
+        self.__format_mc()
+
+    def __format_mc(self):
+        self.__to_add('text', self.text)
+        self.__to_add('bold', self.bold)
+        if checkColor(self.color):
+            self.__to_add('color', self.color)
+
+    def __to_add(self, key, value):
+        if value is not False and value is not None:
+            self.__json[key] = value
+
+    def get_json(self):
+        return json.dumps(self.__json, separators=(',', ':'))
+
+    @staticmethod
+    def multiple_tellraw(*tellraws):
+        return_list = ','.join(str(tellraw) for tellraw in tellraws)
+        # Double quote is add to avoid parent heriarchy of Events
+        return '["",' + return_list + ']'
+
+    def __str__(self):
+        return self.get_json()
+def checkColor(color):
+    if color == 'dark_red':
+        return True
+    elif color == 'red':
+        return True
+    elif color == 'gold':
+        return True
+    elif color == 'yellow':
+        return True
+    elif color == 'dark_green':
+        return True
+    elif color == 'green':
+        return True
+    elif color == 'aqua':
+        return True
+    elif color == 'blue':
+        return True
+    elif color == 'dark_blue':
+        return True
+    elif color == 'light_purple':
+        return True
+    elif color == 'white':
+        return True
+    elif color == 'gray':
+        return True
+    elif color == 'dark_gray':
+        return True
+    elif color == 'black':
+        return True
+    else:
+        return False
+
+#  ----------- Script Functions -----------
+def prtStackTrace(Fatal = False): #prints most recent error
+	'''
+		Simple test
+	'''
 	if Fatal:
 		mPrint('FATAL', '\n' + traceback.format_exc())
 		global run
@@ -60,53 +227,57 @@ def prtStackTrace(Fatal = False):
 	else:
 		mPrint('ERROR', '\n' + traceback.format_exc())
 
-def createLog():
-	if not os.path.exists('logs'):
+def createLog(): #creates logFile
+	if not os.path.exists('logs'): #crea la dir log se non esiste
 		os.mkdir('logs')
-	if not os.path.isfile(logFile):
+	if not os.path.isfile(logFile): #crea il file logs\{now} se non esiste
 		data = 'Welcome to the log lmao nothing useful here? Probabli not.\n'
-		data = data + 'I present you the complete mess of this script\n\n'
-		writeDataFile(logFile, data)
+		data = data + 'I present to you the complete mess of this script\n\n'
+		writeDataFile(logFile, data) #first commit
 	else:
-		mPrint('FUNC', f'createLog()')
-		mPrint('DEV', f'File già presente: {logFile}')
+		mPrint('FUNC', f'createLog()') #log file exists??? wtf how (impossible)
+		mPrint('DEV', f'File già presente: {logFile}') #actually too scared to delete this who knows
 
-def logToFile(newdata):
+def logToFile(newdata): #logs data to logFile
 	File = getDataFile(logFile)
 	File = File + str(newdata) + '\n'
 	writeDataFile(logFile, File)
 
-def rPrint(text, reqlog=False):
+def yesNoInput(input): #parses (Y/n) format input
+	input = input.lower()
+	if (input == 'y' or input == '' or input == 'yes'):
+		mPrint('INFO', 'Comand accettato')
+		return 'y'
+	else:
+		mPrint('INFO', 'Comand annullato')
+		return 'n'
+
+def rPrint(text, reqlog=False): #Prints data without colors/prefixes
 	mPrint(text, '', reqlog, True)
 
-def mPrint(square, text='', reqlog=False, raw=False):
-	elcolor = True
+def mPrint(prefix, text='', reqlog=False, raw=False): #Formats data with date/prefixes/colors for better readibility
 	now = datetime.now().strftime('%d-%m-%Y, %H:%M:%S')
 	res = Fore.RESET
 	col = Fore.RESET
 
-	if square == 'INFO':
+	if prefix == 'INFO':
 		col = Fore.GREEN
-	elif square == 'WARN':
+	elif prefix == 'WARN':
 		col = Fore.YELLOW
-	elif square == 'ERROR' or square == 'FATAL':
+	elif prefix == 'ERROR' or prefix == 'FATAL':
 		col = Fore.RED
-	elif square == 'DEV' or square == 'WORK':
+	elif prefix == 'DEV' or prefix == 'WORK':
 		col = Fore.MAGENTA
 		reqlog = True
-	elif square == 'FUNC':
+	elif prefix == 'FUNC':
 		col = Fore.BLACK
 		reqlog = True
-	elif square == 'RESP':
+	elif prefix == 'RESP':
 		col = Fore.CYAN
-	elif square == 'IMPORTANT':
+	elif prefix == 'IMPORTANT':
 		col = Fore.RED
 	else:
-		text = square
-
-	if not elcolor:
-		col = ''
-		red = ''
+		text = prefix
 
 	if raw:
 		if reqlog == True:
@@ -125,20 +296,21 @@ def mPrint(square, text='', reqlog=False, raw=False):
 	else:
 		if reqlog == True:
 			if log == True:
-				out = f'[{now}]: {col}[{square}] - {text}{res}'
+				out = f'[{now}]: {col}[{prefix}] - {text}{res}'
 
 			else:
 				if devLogs:
-					logToFile(f'[{now}]: [{square}] - {text}')
+					logToFile(f'[{now}]: [{prefix}] - {text}')
 				return 2
 		else:
-			out = f'[{now}]: {col}[{square}] - {text}{res}'
+			out = f'[{now}]: {col}[{prefix}] - {text}{res}'
 
-		logToFile(f'[{now}]: [{square}] - {text}')
+		logToFile(f'[{now}]: [{prefix}] - {text}')
 		print(out)
 		return 0
 
-def checkConfig():
+#properties.ini
+def checkConfig(): #Checks if properties.ini has the required entries
 	mPrint('FUNC', f'checkConfig()')
 	r=0
 	file = ConfigObj('properties.ini')
@@ -162,7 +334,7 @@ def checkConfig():
 	remQuote('properties.ini')
 	return r
 
-def createConfig(): #works but remember to update
+def createConfig(): #Creates properties.ini HAS TO BE UPDATED MANUALLY
 	mPrint('FUNC', f'createConfig()')
 	config = configobj.ConfigObj()
 	config.filename = 'properties.ini'
@@ -176,19 +348,28 @@ def createConfig(): #works but remember to update
 	config.write()
 	remQuote('properties.ini')
 
-def updateConfig(key, value): #worked last time I checked
+def updateConfig(key, value): #Stores an updated config in the properties.ini file
 	mPrint('FUNC', f'updateConfig({key}, {value})')
 	config[key] = value
 	config.write()
 	remQuote('properties.ini')
 	
+def getProperty(key, serverID): #pull and return info from server.properties files
+	mPrint('FUNC', f'getProperty({key}, {serverID})')
+	key = str(key)
+	path = serverID + '\\server.properties'
+	temp_cfg = ConfigObj(path)
+	if key in temp_cfg:
+		return int(temp_cfg[key])
+	else:
+		return -1
+
+
 def crash(): #lol does it work if it crashes the program? (yes because it just stops it)
 	mPrint('FUNC', f'crash()')
-	mPrint('Premere un tasto per terminare...')
-	input()
 	exit()
 
-def remQuote(file):#just works (all the three things)
+def remQuote(file):#removes '"' from files for compatibility issues
 	data = getDataFile(file) #apre e prende i dati
 	data = data.replace('"','') #toglie gli "
 	writeDataFile(file, data) #apre e riscrive i dati
@@ -197,17 +378,17 @@ def getDataFile(file): #apre file e prende i dati
 	data = file.read()
 	file.close()
 	return data
-def writeDataFile(file, data): 
+def writeDataFile(file, data): #apre file e scrive dati
 	file = open(file, "wt")
 	file.write(data)
 	file.close()
 
-def verifyStatus(server):
-	mPrint('FUNC', f'verifyStatus({server})')
-	if server < 0:
+def verifyStatus(serverID): #checks if server has succesfully started pinging the port
+	mPrint('FUNC', f'verifyStatus({serverID})')
+	if serverID < 0:
 		pass
 	else:
-		if server <= len(online):
+		if serverID <= Servers.serverCount:
 			startTime = time.time()
 			beginTime = time.time()
 			seconds = 7
@@ -219,9 +400,9 @@ def verifyStatus(server):
 				elapsedTime = currentTime - startTime
 				if elapsedTime > seconds:
 					mPrint('INFO', 'controllo...')
-					if isServerAlive(config['server-ip'], online[server][2]):
-						mPrint('INFO', f'Server: {online[server][0]} è stato rilevato. ({round(currentTime-beginTime)}sec.)')
-						online[server][1] = 1
+					if Servers.isAlive(config['server-ip'], server[serverID].port):
+						mPrint('INFO', f'Server: {server[serverID].name} è stato rilevato. ({round(currentTime-beginTime)}sec.)')
+						server[serverID].state = 'online'
 						break
 					else:
 						mPrint('INFO', 'Offline.')
@@ -229,31 +410,32 @@ def verifyStatus(server):
 					startTime = time.time()
 				try:
 					if keyboard.is_pressed('q'):
-						online[server][1] = 1
+						server[serverID].state = 'online'
 						mPrint('WARN', f'Questo server ora risulterà online.')
-						mPrint('INFO', f'Usa il comando \'stop {server}\' se vuoi farlo risultare offline.')
+						mPrint('INFO', f'Usa il comando \'stop {serverID}\' se vuoi farlo risultare offline.')
 						break
 				except:
 					pass
 		else:
 			mPrint('ERROR', 'Server non trovato.')
 
-def loadServers():
+def loadServers(): #scans the directory and adds the servers in the server[] List as objects -> server[Servers s1, Servers s2, ...] 
 	mPrint('FUNC', f'loadServers()')
 	s = dirGrab()
 	x = 0
-	for server in s:
-		sPort = getProperty('server-port', server)
-		rPort = getProperty('rcon.port', server)
+	for serverName in s:
+		#proprietà dei server.properties
+		sPort = getProperty('server-port', serverName)
+		rPort = getProperty('rcon.port', serverName)
 		if sPort < 0:
-			mPrint('ERROR', f'valore server-port sconosciuto nel server: {server}')
-			mPrint('INFO', 'porto la server-port a 25565.')
-			sPort = 25565
-		if sPort >= 25575:
-			mPrint('WARN', f'server: {server} ha una porta >= a 25575.')
+			mPrint('ERROR', f'valore server-port non valido nel server: {serverName}')
+			mPrint('INFO', 'porto la server-port a 25565.') ##SOLO UN PLACEHOLDER, VERRÀ CAMBIATO DURANTE IL LOADING
+			sPort = int(config['server-port'])
+		if sPort >= int(config['rcon-port']):
+			mPrint('WARN', f'server: {serverName} ha una porta >= a { config["rcon-port"] }.')
 			mPrint('INFO', 'per evitare problemi porto la server-port a 25565.')
 			sPort = 25565
-		online[x] = [str(server), 0, sPort, rPort]
+		server.append(Servers(str(serverName), 0, sPort, rPort)) #Create Servers objects
 		x += 1
 	mPrint('INFO', f'Loaded {x} servers.')
 
@@ -263,107 +445,99 @@ def loadServers():
 	batFixer(-1, config['-Xmx'])
 	backSync()
 
-def batter(i, batCopy, server, s):
-	mPrint('FUNC', f'batter({i}, {batCopy}, {server}, {s})')
-	batPaste = batCopy
+def batter(i, batCopy, serverID, s): #adds start.bat to server folder configured for script usage
+	mPrint('FUNC', f'batter({i}, {batCopy}, {serverID}, {s})')
 	
-	path = s[i] + '\\start.bat'
+	path = server[i].name + '\\start.bat' # possible BUG: what if server folders don't match with server count?
 	if not os.path.isfile(path):
-		mPrint('IMPORTANT', f'IL FILE {path} NON ESISTE, IO TE LO FACCIO MA VEDI CHE IL .jar È SCRITTO server.jar QUINDI ATTENTO CHE SIA GIUSTO SENNO NON PARTE IL SERVER OK?')
+		mPrint('IMPORTANT', f'IL FILE {path} NON ESISTE. Ne creo uno nuovo')
+		mPrint('IMPORTANT', f'controlla che il server si chiami {server[i].name}\\server.jar')
 		try:
-			data = getDataFile('zscripts\\start.bat')
+			data = getDataFile('zscripts\\placeholder.bat')
 			writeDataFile(path, data)
 		except FileNotFoundError:
-			writeDataFile('zscripts\\start.bat', 'for fuck\'s sake don\'t delete me')
-			data = getDataFile('zscripts\\start.bat')
+			writeDataFile('zscripts\\placeholder.bat', batPlaceholderText)
 			writeDataFile(path, data)
 
-	if log:
-		mPrint('WORK', f'batFixer server: {s[i]}')
-		mPrint('WORK', f'start.bat path: {path}')
+	mPrint('WORK', f'start.bat path: {path}')
 			
-	jarFile = getDataFile(s[i]+'\\start.bat')
+	jarFile = getDataFile(server[i].name+'\\start.bat')
 	File = jarFile.split(' ')
 
-	mPrint('DEV', File)
-	for x in range(len(File)):
+	mPrint('DEV', File) 
+	for x in range(len(File)): #BUG server.jar must be called 'server.jar' for this to work
 		if '.jar' in File[x]:
 			jarFile = File[x]
 			break
 		else:
 			jarFile = 'server.jar'
 			
-	batPaste = batCopy.replace('*JARFILE*', jarFile)
-	batPaste = batPaste.replace('*PATH*', s[i])
-	writeDataFile(path, batPaste)
-	mPrint('DEV', 'batcopy: '+batPaste)
+	batCopy = batCopy.replace('*JARFILE*', jarFile)
+	batCopy = batCopy.replace('*PATH*', server[i].name)
+	writeDataFile(path, batCopy)
+	mPrint('DEV', 'batcopy: '+batCopy)
 
-def batFixer(server, xmx = None):
-	mPrint('FUNC', f'batFixer({server}, {xmx})')
+def batFixer(serverID, xmx = None): #creates a raw batch file and sends it to batter ^ 
+	mPrint('FUNC', f'batFixer({serverID}, {xmx})')
+	#gets raw data and make raw bat file (and sends it to batter())
 	if xmx == None:
 		xmx = config['-Xmx']
 
-	s = ()
+	s = Servers.serverCount # TEST
 
 	placeholder = 'zscripts\\placeholder.bat'
 	try:
 		batCopy = getDataFile(placeholder)
 	except FileNotFoundError:
-		newPlaceholder = 'cd *PATH*\njava *MaxHeap* -jar *JARFILE* nogui'
-		writeDataFile(placeholder, newPlaceholder)
+		writeDataFile(placeholder, batPlaceholderText)
 		batCopy = getDataFile(placeholder)
 
-	if 'G' in str(xmx):
-		num = xmx.replace('G', '')
-		xmx = str(int(int(num)*1024))
-	elif 'M' in str(xmx):
-		num = xmx.replace('M', '')
-		xmx = num
-	else:
-		mPrint('WARN', 'Invalid -Xmx format, check properties.ini')
-		mPrint('WARN', 'Temporarily setting -Xmx to -Xmx2048M')
-		xmx = '2048'
+	try:
+		if 'G' in str(xmx):
+			num = xmx.replace('G', '')
+			xmx = str(int(int(num)*1024))
+		elif 'M' in str(xmx):
+			num = xmx.replace('M', '')
+			xmx = num
+		else:
+			mPrint('WARN', 'Invalid -Xmx format, check properties.ini')
+			mPrint('WARN', 'Temporarily setting -Xmx to -Xmx2048M')
+			xmx = '2048'
+	except:
+		prtStackTrace()
+		return -1
 
 	batCopy = batCopy.replace('*MaxHeap*', f'-Xmx{xmx}M')
 
-	if server == -1:
-		for i in range(len(s)):
-			batter(i, batCopy, server, s)	
+	if serverID == -1:
+		for x in range(s):
+			batter(x, batCopy, serverID, s)	
 	else:
-		i = server
-		batter(i, batCopy, server, s)
+		x = serverID
+		batter(x, batCopy, serverID, s)
 
-def getProperty(key, server):
-	mPrint('FUNC', f'getProperty({key}, {server})')
-	key = str(key)
-	path = server + '\\server.properties'
-	temp_cfg = ConfigObj(path)
-	if key in temp_cfg:
-		return int(temp_cfg[key])
-	else:
-		return -1
+def changeSingleProperty(key, value, serverID):# changes only one property for a specific (server.properties) file
+	mPrint('FUNC', f'startChangeProperties({key}, {value}, {serverID})')
 
-def startChangeProperties(key, value, serverid):#what is this even supposed to do
-	mPrint('FUNC', f'startChangeProperties({key}, {value}, {serverid})')
-	paths = dirGrab()
-	server = paths[int(serverid)]
-	server = server + '\\server.properties'
-	temp_cfg = ConfigObj(server)
-	temp_cfg[key] = int(value)
+	serverDir = server[serverID].name + '\\server.properties'
+	
+	temp_cfg = ConfigObj(serverDir)
+	temp_cfg[key] = value
 	temp_cfg.write()
-	remQuote(server)
+	remQuote(serverDir)
 
-def rconSync(rconPort=25575):#param is starting port
+def rconSync(rconPort = -1): #sets an rconPort for all the servers found
+	rconPort = int(config['rcon-port']) if (rconPort == -1) else int(rconPort)
 	mPrint('FUNC', f'rconSync({rconPort})')
-	if rconPort < 25575:
+	if rconPort < int(config['rcon-port']):
 		mPrint('WARN', f'rcon.port è impostato a {rconPort}')
 		mPrint('WARN', f'per prevenire problemi con le porte usate dai server')
 		mPrint('WARN', f'Impostare un numero maggiore/uguale a 25575.')
 		mPrint('WARN', f'Tenere in considerazione le porte utilizzate per tenere i server online.')
 		return -1
 
-	for i in range(len(online)):
-		if online[i][1] != 0:
+	for x in range(Servers.serverCount):
+		if server[x].isOnline():
 			mPrint('ERROR', 'Ho rilevato un server online,')
 			mPrint('WARN', 'per evitare problemi chiudi tutti i server con il comando \'stop\'')
 			mPrint('WARN', 'se credi sia un errore aggiorna la lista server online usando il comando \'ls -f\'')
@@ -376,9 +550,8 @@ def rconSync(rconPort=25575):#param is starting port
 
 
 	x = 0
-	for server in s:
-
-		path = server + '\\server.properties'
+	for serverDir in s:
+		path = serverDir + '\\server.properties'
 		if os.path.isfile(path):
 			mPrint('INFO', f'Found path {path}')
 			temp_cfg = ConfigObj(path)
@@ -396,84 +569,72 @@ def rconSync(rconPort=25575):#param is starting port
 				temp_cfg['enable-rcon'] = 'true'
 				if not 'rcon.port' in temp_cfg:
 					temp_cfg['rcon.password'] = newRcon
-				if not 'rcon.port' in temp_cfg:
+				if not 'rcon.password' in temp_cfg:
 					temp_cfg['rcon.password'] = rconPsw
 				temp_cfg.write()
 				remQuote(path)
 			x+=1
 
-def workChangeProperties(key, name):#it worked on my machine
-	mPrint('FUNC', f'workChangeProperties({key}, {name})')
-	name = name + '\\server.properties'
-	temp_cfg = ConfigObj(name)
+def workChangeProperties(key, serverName): #syncs specific property in (server.properties || start.bat) whith the config stored in (properties.ini)
+	mPrint('FUNC', f'workChangeProperties({key}, {serverName})')
+	serverName = serverName + '\\server.properties'
+	temp_cfg = ConfigObj(serverName)
 	
-	mPrint('DEV', f'name:{name}')
+	mPrint('DEV', f'serverName:{serverName}')
 
+	#parsing
 	if key == 'ip':
-		jkey = 'server-ip'
-		key = 'server-ip'
+		key ='server-ip'
 	elif key == 'port':
-		jkey = 'server-port'
-		key = 'server-port'
+		key ='server-port'
 	elif key == 'ram' or key == 'xmx':
-		jkey = '-Xmx'
+		key = '-Xmx'
 
-	else:
-		jkey = key
+	else: #trusting changeProperties() parsing
+		key = key
 
 	if key == '-Xmx':
-		for i in range(len(online)):
-			batFixer(i, config['-Xmx'])
+		for x in range(Servers.serverCount):
+			batFixer(x, config['-Xmx'])
 		return 0
 	if key == 'all':
 		temp_cfg['server-ip'] = config['server-ip']
 		temp_cfg['server-port'] = config['server-port']
-		mPrint('INFO', 'changed ip and port to: ' + config['server-ip'] + ":" + str(config['server-port']) + ' for server: '+str(name))
+		mPrint('INFO', 'changed ip and port to: ' + config['server-ip'] + ":" + str(config['server-port']) + ' for server: '+str(serverName))
 	else:
-		temp_cfg[str(jkey)] = config[str(key)]
-		mPrint('INFO', 'server: '+ str(name))
-		mPrint('INFO', 'changed key: ' + jkey + ", to value:" + temp_cfg[jkey])
+		temp_cfg[str(key)] = config[str(key)]
+		mPrint('INFO', 'server: '+ str(serverName))
+		mPrint('INFO', 'changed key: ' + key + ", to value:" + temp_cfg[key])
 	temp_cfg.write()
 
 	#chiama remQuote per togliere i '"'
-	remQuote(name)
+	remQuote(serverName)
 			
-def changeProperties(key, server=-1, syncRcon=True):#maybe it works
-	mPrint('FUNC', f'changeProperties({key}, {server})')
-	dirs = dirGrab()
+def changeProperties(key, serverID=-1, syncRcon=True): #prepares data for workChangeProperties()
+	mPrint('FUNC', f'changeProperties({key}, {serverID})')
 	mPrint('INFO', 'key: ' + str(key))
+
+	dirs = dirGrab()
+	#initial parse
 	if (key != 'ip' and key != 'server-ip' and key != 'port' and key != 'server-port' and key != 'all' and key != 'ram' and key != 'xmx' and key != '-Xmx'):
 		mPrint('ERROR', 'key error.')
 		return 69
 
-	if server < 0: #cambia tutti i server
-		mPrint('DEV', 'a')
+	if serverID < 0: #cambia tutti i server
+		mPrint('DEV', 'All servers')
 		for name in dirs:
 			workChangeProperties(key, name)
-			if syncRcon:
-				rconSync()
 	else: #cambia il server scelto
-		mPrint('DEV', 'b')
-		workChangeProperties(key, dirs[int(server)])
-		if syncRcon:
-			rconSync()
+		mPrint('DEV', f'Server {serverID}')
+		workChangeProperties(key, dirs[int(serverID)])
+
+	if syncRcon:
+		rconSync()
+
 	return 0
 
-def singleChangeProperties(key, value, name):
-	mPrint('FUNC', f'singleChangeProperties({key}, {value}, {name})')
-	name = name + '\\server.properties'
-	temp_cfg = ConfigObj(name)
-	mPrint('DEV', f'name:{name}')
-
-	temp_cfg[key] = value
-	temp_cfg.write()
-	remQuote(name)
-
-	mPrint('INFO', 'server adapted: '+ str(name))
-	mPrint('DEV', 'changed key: ' + key + ", to value:" + value)
-
-#Runtime config modifiers
-def modIp(newIp, sync=True):#should work
+#Config modifiers (properties.ini AND server.properties)
+def modIp(newIp, sync=True): #changes ip config to newIp (user input)
 	mPrint('FUNC', f'modIp({newIp}, {sync})')
 	if not (newIp == '' or newIp.count('.')!=3):
 		updateConfig('server-ip', newIp)
@@ -487,12 +648,11 @@ def modIp(newIp, sync=True):#should work
 		mPrint('INFO', 'Sincronizzo gli ip a tutti i server')
 		changeProperties('server-ip')
 
-
-def modPort(newPort, sync=True):#should work
+def modPort(newPort, sync=True): #changes port config to newPort (user input)
 	mPrint('FUNC', f'modPort({newPort}, {sync})')
 	if not (newPort == '' and newPort.isnumeric() == False and int(newPort) >= 0):
-		if newPort >=25575:
-			mPrint('ERROR', 'server-port can\'t be >= than 25575.')
+		if newPort >= int(config['rcon-port']):
+			mPrint('ERROR', 'server-port can\'t be >= than 25575 for rcon to work.')
 			return -1
 		else:
 			updateConfig('server-port', newPort)
@@ -506,37 +666,29 @@ def modPort(newPort, sync=True):#should work
 		mPrint('INFO', 'Sincronizzo le porte a tutti i server')
 		changeProperties('server-port')
 
+def modRam(xmx, serverID=-1): #changes ram to (user input) in properties.ini
+	if not str(serverID).replace('-', '').isnumeric():
+		serverID = txtToId(serverID)
 
-def modRam(xmx, server=-1):
-	if not str(server).replace('-', '').isnumeric():
-		server = txtToId(server)
-
-	server = int(server)
+	serverID = int(serverID)
 	
-	if 'G' in str(xmx) or 'M' in str(xmx):
-		ok = True
-	else:
+	if not('G' in str(xmx) or 'M' in str(xmx)):
 		mPrint('ERROR', 'Invalid -Xmx format, \'xmx help\'')
 		return -1
 
-	if server == -1:
+	if serverID == -1:
 		updateConfig('-Xmx', xmx)
 
-		for i in range(len(online)):
-			batFixer(i, xmx)
-	elif server < len(online):
-		batFixer(server, xmx)
+		for x in range(Servers.serverCount):
+			batFixer(x, xmx)
+	elif serverID < Servers.serverCount:
+		batFixer(serverID, xmx)
 	else:
 		mPrint('ERROR', 'Server non trovato!')
 
 ############################################################################
-def isServerAlive(ip, port):#works
-	mPrint('FUNC', f'isServerAlive({ip}, {port})')
-	import socket
-	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-		return s.connect_ex((ip, port)) == 0
 
-def dirGrab(isStart = True): #works but can be updated
+def dirGrab(isStart = True): #Returns a list containing server folders in alphabetical order ##works but can be updated
 	mPrint('FUNC', f'dirGrab({isStart})')
 	#Ottengo una lista raw delle cartelle in questa directory
 	r_dirs = glob(os.path.join('.', "*", ""))
@@ -544,7 +696,7 @@ def dirGrab(isStart = True): #works but can be updated
 	for x in r_dirs:
 		dirs = [x[2:-1] for x in r_dirs]
 	#Cerco il file "server.properties" or "config.yml" in ogni directory.
-	#Se il file è presente, esiste un server
+	#Se il file è presente, esiste un server (in teoria)
 	if(isStart == True):
 		mPrint('WORK', 'Scanning for server.properties')
 		#Controllo se c'è un server.properties
@@ -576,46 +728,46 @@ def dirGrab(isStart = True): #works but can be updated
 	#Ritorno una lista di directory elaborate
 	return dirs
 
-def ls(): #works it just goes BRRR OUTPUT
+def ls(): #lists the server that the script has found
 	mPrint('FUNC', f'ls()')
 	dirs = dirGrab()
 	count = 0
 	rPrint('------Server Trovati------')
 	rPrint('Green = Online')
 	for x in range(len(dirs)):
-		if online[x][1] == 1:
+		if server[x].state == 1:
 			pre = Fore.GREEN
-			aft = online[x][2]
+			aft = server[x].port
 		else:
 			pre = Fore.RESET
 			aft = ''
-		rPrint(f'{pre}{x}|-> {online[x][0]} {aft}{Fore.RESET}')
+		rPrint(f'{pre}{x}|-> {server[x].name} {aft}{Fore.RESET}')
 		count += 1
 	print('\n')
 
-def listOnline(check=False):
+def listOnline(check=False): # returns a list of online servers (for printOnline() to print)
 	mPrint('FUNC', f'listOnline({check})')
 
 	onList = []
 
-	for i in range(len(online)):
-		if online[i][1] != 0:
-			onList.append(i)
-			mPrint('INFO', f'Found online server: {online[i][0]}')
-			mPrint('DEV', f'Server info, id: {i}, state: {online[i][1]}, port: {online[i][2]}, rcon: {online[i][3]}')
+	for x in range(Servers.serverCount):
+		if server[x].state != 0:
+			onList.append(x)
+			mPrint('INFO', f'Found online server: {server[x].name}')
+			mPrint('DEV', f'Server info, id: {x}, state: {server[x].state}, port: {server[x].port}, rcon: {server[x].rcon}')
 	if check:
-		for i in range(len(online)):
-			if online[i][1] != 0:
-				if isServerAlive(config['server-ip'], online[i][2]):
-					online[i][1] = 1
-					mPrint('DEV', f'found True Online Server {online[i][0]} with id: {i}, is now in state {online[i][1]}')
+		for x in range(Servers.serverCount):
+			if server[x].state != 0:
+				if Servers.isAlive(config['server-ip'], server[x].port):
+					server[x].state = 1
+					mPrint('DEV', f'found True Online Server {server[x].name} with id: {x}, is now in state {server[x].state}')
 				else:
-					online[i][1] = 0
-					onList.remove(i)
-					mPrint('DEV', f'found False Online Server {online[i][0]} with id: {i}, is now in state {online[i][1]}')
+					server[x].state = 0
+					onList.remove(x)
+					mPrint('DEV', f'found False Online Server {server[x].name} with id: {x}, is now in state {server[x].state}')
 	return onList
 
-def printOnline(check=False):
+def printOnline(check=False): # prints a list of online servers
 	mPrint('FUNC', f'printOnline({check})')
 	onlineServers = listOnline(check)
 	rPrint('------Server Online------')
@@ -625,12 +777,11 @@ def printOnline(check=False):
 		rPrint(' |-> GOOD')
 	else:
 		for x in onlineServers:
-			rPrint(str(x) + '|-> ' + online[x][0] + ', ' + str(online[x][2]))
+			rPrint(str(x) + '|-> ' + server[x].name + ', ' + str(server[x].port))
 	print('\n')
 
-
-def sendRcon(server, command, text = None):
-	mPrint('FUNC', f'sendRcon({server}, {command}, {text})')
+def sendRcon(serverID, command, text = None): # sends message to server using minecraft rcon protocol
+	mPrint('FUNC', f'sendRcon({serverID}, {command}, {text})')
 
 	if text is None:
 		if '/' in command:
@@ -644,11 +795,11 @@ def sendRcon(server, command, text = None):
 			send = f'/{command} {text}'
 		
 	mPrint('DEV', 'Invio un comando al server: ' + send)
-	mPrint('DEV', f'attempting rcon communication, \n\tserver: {server}\n\tcommand: {command}\n\ttext: {text}\n\tsend: {send}')
-	mPrint('DEV', f'connection informations: \n\tip: {config["server-ip"]}\n\tpsw: {rconPsw}\n\tport: {online[server][3]}')
+	mPrint('DEV', f'attempting rcon communication, \n\tserver: {serverID}\n\tcommand: {command}\n\ttext: {text}\n\tsend: {send}')
+	mPrint('DEV', f'connection informations: \n\tip: {config["server-ip"]}\n\tpsw: {rconPsw}\n\tport: {server[serverID].rcon}')
 
 	try:
-		with MCRcon(config['server-ip'], rconPsw, online[server][3]) as mcr:
+		with MCRcon(config['server-ip'], rconPsw, server[serverID].rcon) as mcr:
 			resp = mcr.command(send)
 			mPrint('RESP', 'server resp: ' + resp)
 	except ConnectionRefusedError:
@@ -657,73 +808,57 @@ def sendRcon(server, command, text = None):
 	except Exception:
 		prtStackTrace()
 
-def start(server, port=None):#I hope it works
-	mPrint('FUNC', f'start({server}, {port})')
-	server = str(server)
+def start(serverID, port=None):#Starts one/all server/s
+	mPrint('FUNC', f'start({serverID}, {port})')
+	serverID = str(serverID)
 
 	#Preparation
-	if server.isnumeric():
-		isId = True
-		mPrint('DEV', 'found numeric server id, isId = ' + str(isId))
+	try: #If serverID is literal ('Server1') change to id, else cast int jtbs
+		serverID = int(serverID)
+	except ValueError:
+		mPrint('WORK', 'Server is literal, scanning for xd')
+		serverID = txtToId(serverID)
+		
+	if serverID != -1:
+		mPrint('WORK', 'found serverID: ' + str(serverID))
 	else:
-		isId = False
-		mPrint('DEV', 'found literal server id, isId = ' + str(isId))
+		mPrint('ERROR', 'Server non trovato :(')
+		return -1
 
 	if port is None:
 		port = int(config['server-port'])
 	else:
 		mPrint('INFO', 'running on custom server port: ' + str(port))
 		port = int(port)
-		startChangeProperties('server-port', port, server)
+		changeSingleProperty('server-port', port, serverID)
 
-	
-
-	#Start
 	s = dirGrab()
-	if isId:
-		server = int(server)
-		found = True
-	else:
-		mPrint('WORK', 'Server is literal, scanning for id')
-		for x in range(len(s)):
-			mPrint('DEV', f'x = {x}; s[x] = {s[x]}; server = {server}')
-			if s[x] == str(server):
-				server = int(x)
-				mPrint('WORK', 'found server id: ' + str(server))
-				found = True
-				break
-			else:
-				found = False
-
-	if not found:
-		mPrint('ERROR', 'Server non trovato :(')
-		return -1
-
-	if server >= len(online):
-		mPrint('WARN', f'Il server {server} non esiste, ho rilevato solo {len(online)} server')
+	#Start
+	if serverID >= Servers.serverCount:
+		mPrint('WARN', f'Il server {serverID} non esiste, ho rilevato solo {Servers.serverCount} server')
 		mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
 		return -1
 
-	for i in range(len(online)):
-		if s[server] in online[i] and online[i][1] != 0: #Controllo se il server che sto facendo partire è già online
+	for x in range(Servers.serverCount):
+		if s[serverID] == server[x].name and server[x].state != 0: #Controllo se il server che sto facendo partire si già online
 			mPrint('INFO', 'Controllo lo stato del server...')
-			if isServerAlive(config['server-ip'], port):
+			if Servers.isAlive(config['server-ip'], port):
 				mPrint('WARN', 'Server già partito, annullo il comando')
-				mPrint('WARN', 'Un listener è stato trovato attivo sulla porta ' + config['server-ip'] +':'+str(port))
+				mPrint('WARN', 'La porta ' + config['server-ip'] +':'+str(port) + ' è attualmente occupata. Impossibile startare un server')
 				return -1
 			else:
-				mPrint('INFO', f'Server segnalato online in realtà è offline, aggiorno lo stato per il server {server}')
-				online[i][1] = 0
+				mPrint('INFO', f'Server segnalato online in realtà è offline, aggiorno lo stato per il server {serverID}')
+				server[x].state = 0
 
-		if port in online[i] and online[i][1] != 0: #Controllo se un server con la stessa porta è online
+		if port == server[x].port and server[x].state != 0: #Controllo se la porta è libera
 			mPrint('INFO', 'Controllo lo stato del server...')
-			if isServerAlive(config['server-ip'], port):
+			if Servers.isAlive(config['server-ip'], port):
 				mPrint('WARN', f'Esiste un server online su questa porta: {port}')
 				mPrint('INFO', 'Provo con le prossime 5 porte...')
 				starterP = port
-				for y in range(1, 5):
+				for y in range(1, 5): #Provo le prossime 5 per qualche motivo
 					yPort = port+y
-					if isServerAlive(config['server-ip'], yPort):
+					if Servers.isAlive(config['server-ip'], yPort):
 						mPrint('INFO', f'{yPort} non disponibile.')
 					else:
 						mPrint('INFO', f'Porta {yPort} libera, uso questa.')
@@ -733,24 +868,20 @@ def start(server, port=None):#I hope it works
 					mPrint('WARN', f'Nessun server trovato su 6 porte a partire da {starterP}')
 					return 0
 
-	mPrint('WORK', f'building server path for server id <{str(server)}>')
-	file = s[server]+r'\start.bat'
-	mPrint('WORK', f'builded path for {str(s[server])} ({file})')
-
-	if port != config['server-port']:
-		mPrint('DEV', f'if port != {config["server-port"]}: True')
-		singleChangeProperties('server-port', str(port), s[server])
+	mPrint('WORK', f'building server path for server id <{str(serverID)}>')
+	file = s[serverID]+r'\start.bat'
+	mPrint('WORK', f'builded path for {str(s[serverID])} ({file})')
 
 	try:
 		p = subprocess.Popen(file, creationflags=subprocess.CREATE_NEW_CONSOLE)
 		mPrint('INFO', 'Server initialized.')
-		online[server][1] = 3 #[name,state,port,rcon]
-		online[server][2] = port
+		server[serverID].state = 1 #[name,STATE,port,rcon]
+		server[serverID].port = port
 
 		mPrint('INFO', 'Verifico lo stato del server...')
-		verifyStatus(server)
+		verifyStatus(serverID)
 		mPrint('INFO', 'Condividi il tuo ip per far entrare anche gli altri!')
-		if port != config['server-port']:
+		if port != '25565':
 			mPrint('INFO', f'{extIp}:{port}')
 		else:
 			mPrint('INFO', f'{extIp}')
@@ -759,163 +890,149 @@ def start(server, port=None):#I hope it works
 		mPrint('ERROR', 'C\'è stato un problema: printing Traceback:')
 		prtStackTrace()
 
-def stop(server = None, Force = False):
-	mPrint('FUNC', f'stop({server})')
+def stop(serverID = None, Force = False): #Stops one/all server/s
+	mPrint('FUNC', f'stop({serverID})')
 
 	#preparazione
-	try:
-		if server.isnumeric() == False:
-			mPrint('WORK', 'Server is not numeric')
-			server = txtToId(server)
-			mPrint('WORK', f'server = {server}')
-	except AttributeError:
-		mPrint('WORK', 'Server is numeric')
+	if serverID is not None:
+		try:
+			if serverID.isnumeric() == False:
+				mPrint('WORK', 'Server is not numeric')
+				serverID = txtToId(serverID)
+				mPrint('WORK', f'server = {serverID}')
+			else:
+				serverID = int(serverID)
+		except AttributeError:
+			mPrint('WORK', 'Server is numeric')
+			serverID = int(serverID)
 
-	if server is not None:
-		mPrint('WORK', 'Server is not None')
-		server = int(server)
-		mPrint('WORK', f'server = {server}')
-
-	if server == None: #online/check if multiple are on
+	if serverID is None: #no input -> online/check if multiple are on
 		mPrint('WORK', 'Server is None')
 		count = 0
-		for i in range(len(online)):
-			if online[i][1] == 1:
-				count += 1
-		if count == 1:
-			for i in range(len(online)):
-				if online[i][1] == 1:
-					server = i
-		elif count == 0:
-			print('INFO', 'Nessun server trovato online!, \'ls help\'')
+		for x in range(Servers.serverCount): #check server state, if online check reachability
+			if server[x].state == 1:
+				if Servers.isAlive(config['server-ip'], server[x].port): #is server online?
+					if Servers.isAlive(config['server-ip'], server[x].rcon): #is rcon listening?
+						mPrint('FATAL', f'La porta rcon per il server {x} non è in ascolto, sarà impossibile chiudere questo server.')
+						count += 1
+						serverID = x
+				else:
+					mPrint('WORK', f'server {x} was fake online')
+					server[x].state = 0
+
+		if count == 0: #no server found online
+			mPrint('INFO', 'Nessun server trovato online!, \'ls help\'')
 			return -1
-		else:
+		elif count == 1: #one server found online
+			serverID = serverID
+		else: #multiple servers found online
 			mPrint('INFO', 'Piú di un server trovato online.')
-			server = -1
+			serverID = -1
 		mPrint('WORK', f'server = {server}')
 
-
-	mes = str(tellraw.make(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
-	if server == -1:
+	if serverID == -1:
 		mPrint('WORK', 'Checking all servers')
-		#force online list to be true online
-		for x in range(len(online)):
-			if online[x][1] == 1:
-				if not isServerAlive(config['server-ip'], online[x][2]):
-					online[x][1] = 0
-					mPrint('WORK', f'server {x} was fake online')
-			if not isServerAlive(config['server-ip'], online[x][3]):
-				mPrint('FATAL', f'La porta rcon per il server {x} è errata, sarà impossibile chiudere questo server.')
-		
-		for x in range(len(online)):
-			try:
-				splash = getSplash('stop')
-				sendRcon(x,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
-			except Exception:
-				prtStackTrace()
-	else:
+		for x in range(Servers.serverCount):
+			if(server[x].state):
+				try:
+					splash = getSplash('stop')
+					sendRcon(x,'tellraw @a', str(makeTellraw(text=splash, color='green', bold=True)))
+				except Exception:
+					prtStackTrace()
+	else: # only one server is online
 		mPrint('WORK', 'Checking one server')
-		if isServerAlive(config['server-ip'], online[server][2]) == False:
-			print('a')
-			online[server][1] = 0
-			mPrint('WARN', f'Il server {online[server][1]} è in realtà offline. annullo il comando')
-			return -1
-		if isServerAlive(config['server-ip'], online[server][3]) == False:
-			print('b')
-			mPrint('FATAL', f'La porta rcon per il server {online[server][0]} è errata. annullo il comando.')
-			return -1
-		print('c')
 		try:
 			splash = getSplash('stop')
-			sendRcon(server,'tellraw @a', str(tellraw.make(text=splash, color='green', bold=True)))
+			sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='green', bold=True)))
 		except Exception:
 			prtStackTrace()
 
+	mes = str(makeTellraw(text='Server is going bye bye, confirm in python script pls', color='red', bold=True))
 	#those send
-	if server >= 0: #specific
-		print('d')
-		if server >= len(online):
-			mPrint('WARN', f'Il server {server} non esiste, ho rilevato solo {len(online)} server')
-			mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
-		else:
-			if online[server][1] == 1:
-				sendRcon(server, 'tellraw @a', mes)
-				if not Force:
-					mPrint('WARN', 'Do you want to stop the server? (Y/N): ')
-					print('> ', end='')
-					command = input().lower()
-					logToFile('> ' + command)
-				else:
-					command = 'y'
-				if command.lower() == 'y':
-					try:
-						mPrint('INFO', 'mando una richiesta al server...')
-						sendRcon(server, 'stop')
-						online[server][1] = 0
-					except Exception:
-						prtStackTrace()
-				else:
-					mPrint('INFO', 'Comando stop annullato')
-					mPrint('INFO', f'Il server {online[server][0]} è ancora online.')
-
-			else:
-				mPrint('INFO', f'Il server {online[server][0]} è già offline')
-				mPrint('INFO', f'Aggiorno le impostazioni...')
-				online[server][1] = 0
-				mPrint('INFO', 'Fatto!')
-				mPrint('DEV', f'online[server][1] is now: {online[server][1]}')
-
-
-	else: #-1|all
-		for x in range(len(online)):
-			if online[x][1] == 1:
+	if serverID < 0: #-1| target all online server
+		for x in range(Servers.serverCount):
+			if server[x].state == 1:
 				try:
 					sendRcon(x, 'tellraw @a', mes)
 				except Exception:
 					prtStackTrace()
 		if not Force:
-			mPrint('WARN', 'Do you want to stop all the servers? (Y/N): ')
-			print('> ', end='')
-			command = input().lower()
+			mPrint('WARN', 'Do you want to stop all the servers?')
+			command = yesNoInput(input('(Y/n) > '))
 			logToFile('> ' + command)
 		else:
 			command = 'y'
-		if command.lower() != 'y':
+
+		if command != 'y':
 			mPrint('INFO', 'Comando stop annullato')
 			mPrint('INFO', f'I server rimarranno online.')
 			return -2
-
-		for x in range(len(online)):
-			if online[x][1] == 1:
+		#else
+		for x in range(Servers.serverCount):
+			if server[x].state == 1:
 				try:
 					mPrint('INFO', 'mando una richiesta al server...')
 					sendRcon(x, 'stop')
-					online[x][1] = 0
+					server[x].state = 0
 				except Exception:
 					prtStackTrace()
 			else:
-				mPrint('INFO', f'Il server {online[x][0]} è già offline')
+				mPrint('INFO', f'Il server {server[x].name} è già offline')
 				mPrint('INFO', f'Aggiorno le impostazioni...')
-				online[x][1] = 0
+				server[x].state = 0
 				mPrint('INFO', 'Fatto!')
-				mPrint('DEV', f'online[x][1] is now: {online[x][1]}')
+				mPrint('DEV', f'server[x].state is now: {server[x].state}')
+	else: # only target one server
+		if serverID >= Servers.serverCount:
+			mPrint('WARN', f'Il server {serverID} non esiste, ho rilevato solo {Servers.serverCount} server')
+			mPrint('INFO', 'Il comando \'ls -u\' aggiorna la lista server!')
+		else:
+			if server[serverID].state == 1:
+				sendRcon(serverID, 'tellraw @a', mes)
+				if not Force:
+					mPrint('WARN', 'Do you want to stop the server?')
+					command = yesNoInput(input('(Y/n) > '))
+					logToFile('> ' + command)
+				else:
+					command = 'y'
 
-def restart(server = None):#not yet
-	mPrint('FUNC', f'restart({server})')
-	if server == None:
+				if command == 'y':
+					try:
+						mPrint('INFO', 'mando una richiesta al server...')
+						sendRcon(serverID, 'stop')
+						server[serverID].state = 0
+					except Exception:
+						prtStackTrace()
+				else:
+					mPrint('INFO', 'Comando stop annullato')
+					mPrint('INFO', f'Il server {server[serverID].name} è ancora online.')
+					return -2
 
+			else:
+				mPrint('INFO', f'Il server {server[serverID].name} è già offline')
+				mPrint('INFO', f'Aggiorno le impostazioni...')
+				server[serverID].state = 0
+				mPrint('INFO', 'Fatto!')
+				mPrint('DEV', f'server[server].state is now: {server[serverID].state}')
+				return -1
+
+def restart(serverID = None): #Restarts on/all server/s
+	mPrint('FUNC', f'restart({serverID})')
+
+	if serverID == None:
 		mPrint('INFO', 'Provo a riavviare tutti i server.')
 		stopping = []
-		for x in range(len(online)):
-			if online[x][1] == 1:
+		for x in range(Servers.serverCount):
+			if server[x].state == 1:
 				stopping.append(x)
 		if len(stopping) == 0:
 			mPrint('INFO', 'Non ho trovato nessun server online!')
-			mPrint('INFO', '\'set help\' per aiuto')
+			mPrint('INFO', 'usa: \'check help\' per aiuto')
+			mPrint('DEV', '\'set help\' per aiuto')
 			return 0
 
-		rPrint(f'Vuoi davvero riavviare {len(stopping)} server? (Y/N)')
-		command = input('(Y/N)> ').lower()
+		rPrint(f'Vuoi davvero riavviare {len(stopping)} server?')
+		command = yesNoInput(input('(Y/n)> '))
 		if command != 'y':
 			logToFile(f'> {command}')
 			return 0
@@ -923,72 +1040,56 @@ def restart(server = None):#not yet
 		logToFile(f'> {command}')
 		for x in range(len(stopping)):
 			stop(x, True)
-			online[x][1] = 2
+			server[x].state = 2
 		for x in range(len(stopping)):
 			start(x)
 
 	else:
-		if str(server).isnumeric():
-			server = int(server)
+		if str(serverID).isnumeric():
+			serverID = int(serverID)
 		else:
-			server = txtToId(server)
-			if str(server).isnumeric():
+			serverID = txtToId(serverID)
+			if str(serverID).isnumeric():
 				mPrint('ERROR', 'Server non trovato.')
 
-		mPrint('INFO', f'Provo a riavviare il server {server}.')
+		mPrint('INFO', f'Provo a riavviare il server {serverID}.')
 
 		try:
-			stop(server, True)
-			online[server][1] = 2
-			time.sleep(1)
-			start(server)
+			stop(serverID, True)
+			server[serverID].state = 2
+			time.sleep(5) ##FIXME 2 <<<<<<<<<< maybe get a return from rcon?? IDK MAYBE MULTITHREADING!!!!
+			start(serverID)
 		except Exception:
 			prtStackTrace()
 
-def txtToId(txt):
-	mPrint('FUNC', f'txtToId({txt})')
-	i = 0
-	for x in dirGrab():
-		if online[i][0] == txt:
-			return i
-			mPrint('WORK', f'returning: {i}')
-		i+=1
+def txtToId(serverName): #Converts server name to server id
+	mPrint('FUNC', f'txtToId({serverName})')
+	serverID = 0 
+	for serverFound in dirGrab():
+		if serverFound == serverName:
+			mPrint('WORK', f'returning: {serverID}')
+			return serverID
+		serverID += 1
 	return -1
 
-def set(server, param, value = None):
-	mPrint('FUNC', f'set({server}, {param}, {value})')
+def set(serverID, param, value = None):
+	mPrint('FUNC', f'set({serverID}, {param}, {value})')
 	mPrint('WARN', 'Usare questa funzione solo se necessario.')
-	s = dirGrab()
+
+	if not str(serverID).isnumeric(): #if serverID is not numeric turn it into ID
+		serverID = txtToId(serverID)
+		if serverID == -1: #server ID not found
+			print('ERROR', 'Nessun server trovato, prova con un id! \'ls\'')
+			return -1
+		
 	if value != None: #raw from comand
-		online[server][param] = value
+		server[serverID].setParam(param, value)
 		return 0
 
-	if str(param).isnumeric():
-		if int(param) == 1:
-			param = 'online'
-		elif int(param) == 0:
-			param = 'offline'
-	param = param.lower()
-	try: #from program
-		if not str(server).isnumeric():
-			for x in range(len(online)):
-				if s[x] == server:
-					server = x
-					break
-				else:
-					server = None
-			if server == None:
-				print('ERROR', 'Nessun server trovato, prova con un id! \'ls\'')
-				return -1
+	try: #from program #PARAM SHOULD ONLY BE 0/1/2/online/offline/restarting, SINCE CMD IS FOR DEV USE THE CODE TRUSTS USER INPUT
+		server[serverID].state = param
+		mPrint('INFO', f'Il server {server[serverID].name} ora risulta {param}.')
 
-		server = int(server)
-		if not str(param).isnumeric():
-			if param == 'online':
-				online[server][1] = 1
-				mPrint('INFO', f'Il server {online[server][0]} ora risulta online.')
-			elif param == 'offline':
-				online[server][1] = 0
-				mPrint('INFO', f'Il server {online[server][0]} ora risulta offline.')
 	except Exception:
 		prtStackTrace()
 
@@ -999,31 +1100,31 @@ def check(param, port=0): #Add command 'check [port|id|-f]' default: 25565 check
 	except Exception:
 		param = txtToId(param)
 
-	if param < 1000 and param >= 0:
-		if param >= len(online):
+	if Servers.serverCount > param >= 0: #if False then param is a port
+		if param >= Servers.serverCount:
 			mPrint('Server non trovato, \'ls -u\' per aggiornare la lista')
 			return -1
 		if port == 0:
-			if isServerAlive(config['server-ip'], online[param][2]):
+			if Servers.isAlive(config['server-ip'], server[param].port):
 				mPrint('INFO', 'Server is online.')
-				online[param][1] = 1
+				server[param].state = 1
 				return 1
 			else:
 				mPrint('INFO', 'Server is offline')
-				online[param][1] = 0
+				server[param].state = 0
 				return 0
 		else:
-			if isServerAlive(config['server-ip'], port):
+			if Servers.isAlive(config['server-ip'], port):
 				mPrint('INFO', 'Server is online.')
-				online[param][1] = 1
-				online[param][2] = port
+				server[param].state = 1
+				server[param].port = port
 				return 1
 			else:
 				mPrint('INFO', 'Server is offline')
-				online[param][1] = 0
+				server[param].state = 0
 				return 0
 	else:
-		if isServerAlive(config['server-ip'], param):
+		if Servers.isAlive(config['server-ip'], param):
 			mPrint('INFO', 'Un server è attivo su questa porta.')
 			mPrint('INFO', 'Provvedo a sincronizzarlo per te, ma devi darmi l\'id del server!')
 			ls()
@@ -1031,14 +1132,14 @@ def check(param, port=0): #Add command 'check [port|id|-f]' default: 25565 check
 			while True:
 				s = input('[id]> ')
 				if check(s) != -1:
-					if not isServerAlive(config['server-ip'], online[s][3]):
+					if not Servers.isAlive(config['server-ip'], server[s].rcon):
 						mPrint('ERROR', 'La porta rcon non è disponibile, perfavore riavvia il server per evitare problemi.')
 					else:
 						break
 		else:
 			mPrint('INFO', f'Nessun server è attivo sulla porta {param}!')
 			
-def getSplash(menu = 'default'):
+def getSplash(menu = 'default'): #gets a fun text to send with rcon
 	if menu == 'default':
 		lst = 'zscripts\\spl\\splashes.txt'
 	elif menu == 'stop':
@@ -1049,36 +1150,38 @@ def getSplash(menu = 'default'):
 	d = lst.split('\n')
 	return random.choice(d)
 
-def abort(method):
+def abort(method): #implemented as a MEME, WARNING, -f WILL NOT SAVE DATA, -b IS NOT GUARANTEED TO SAVE YOUR DATA only use as a meme
 	mPrint('FUNC', f'abort({method})')
 	if method == '-f':
-		mPrint('You have 5 seconds to save everything')
-		time.sleep(6)
+		mPrint('IMPORTANT', 'You have 5 seconds to save everything')
+		time.sleep(5)
 		os.system('shutdown /s /t 1')
 	elif method == '-b':
 		backup(-1)
 		os.system('shutdown /s /t 1')
 
-def backList(server = -1): 
+def rconSave(serverID): #TODO check if this works
+	sendRcon(serverID, 'save-all')
+
+def backList(serverID = -1): # ???
 	mPrint('FUNC', f'backList()')
 	backSync()
-	rPrint(f'{Fore.GREEN}|------Backups------\n8{Fore.RESET}')
-	if server == -1:
-		for i in range(len(back)):
+	rPrint(f'{Fore.GREEN}|--------- BACKUPS ---------{Fore.RESET}')
+	if serverID == -1:
+		for x in range(len(back)):
+			rPrint(f'{Fore.MAGENTA}|->{back[x][1]}{Fore.RESET} (ID: {back[x][0]})')
+			for j in range(len(back[x][2])):
+				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {back[x][2][j]}')
 			rPrint('|')
-			rPrint(f'{Fore.MAGENTA}|->{back[i][1]}{Fore.RESET} (ID: {back[i][0]})')
-			for j in range(len(back[i][2])):
-				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {back[i][2][j]}')
 	else:
-		for i in range(len(back)):
-			if online[server][0] in back[i][2]:
+		for x in range(len(back)):
+			if server[serverID].name in back[x][2]:
 				rPrint('|')
-				rPrint(f'{Fore.MAGENTA}|->{back[i][1]}{Fore.RESET} (ID: {back[i][0]})')
-				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({i})-> {online[server][0]}')
-	rPrint(f'{Fore.GREEN}|-------------------\n8{Fore.RESET}')
+				rPrint(f'{Fore.MAGENTA}|->{back[x][1]}{Fore.RESET} (ID: {back[x][0]})')
+				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({x})-> {server[serverID].name}')
+	rPrint(f'{Fore.GREEN}|--------------------------\n{Fore.RESET}')
 
-
-def backSync():
+def backSync(): # ???
 	mPrint('FUNC', f'backSync()')
 	if not os.path.exists('backups'):
 		os.mkdir('backups')
@@ -1089,73 +1192,64 @@ def backSync():
 	
 	back.clear()
 
-	for i in range(len(folder)):
+	for x in range(len(folder)):
 		sub = os.listdir(f".\\backups\\{folder[x]}")
 		if len(sub) == 0:
 			shutil.rmtree(f'backups\\{folder[x]}')
 			folder = os.listdir(".\\backups")
 			mPrint('WORK', 'Cartella vuota.')
 		else:
-			back[x] = [num_string(i+1), folder[x], sub]
+			back[x] = [num_string(x+1), folder[x], sub]
 			mPrint('WORK', f'[{num_string(x)}, {folder[x]}, {sub}]')
 			x+=1
 
-def rconSave(server):
-	sendRcon(server, 'save-all')
-
-def backup(server=-2): #-1: all; -2:online
-	mPrint('FUNC', f'backup({server})')
-	now = datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
+def backup(serverID=-2): #-1: all; -2:online
+	mPrint('FUNC', f'backup({serverID})')
+	
 	if not os.path.exists('backups'):
 		os.mkdir('backups')
 		mPrint('INFO', 'Created backup directory.')
-	if server==-1: #all
-		for i in range(len(online)):
-			if online[i][1] == 1:
-				if not (isServerAlive(config['server-ip'], online[i][2])):
-					mPrint('WARN', 'Un server segnalato online è in realtà offline. Aggiorno la lista e creo un backup')
-					online[i][1] = 0
-					
-			backup(i)
-	elif server==-2: #online
-		for i in range(len(online)):
-			if online[i][1] == 1:
-				if isServerAlive(config['server-ip'], online[i][2]):
-					backup(i)
+	if serverID==-1: #all
+		for x in range(Servers.serverCount):
+			backup(x)
+
+	elif serverID==-2: #online
+		for x in range(Servers.serverCount):
+			if server[x].state == 1:
+				if Servers.isAlive(config['server-ip'], server[x].port):
+					backup(x)
 				else:
-					mPrint('WARN', f'Il server "{online[i][0]}" è segnalato online ma risulta offline. Lo imposto come server offline.')
-					online[i][1] = 0
+					mPrint('WARN', f'Il server "{server[x].name}" è segnalato online ma risulta offline. Lo imposto come server offline.')
+					server[x].state = 0
 	else:
-		if not(server >= 0 and server <= len(online)):
+		if not(serverID >= 0 and serverID <= Servers.serverCount):
 			mPrint('WARN', f'Server {server} non trovato.')
 			return -1
 
-		now = datetime.now().strftime('%d-%m-%Y, %H_%M')
+		now = datetime.now().strftime('%Y/%m/%d-%H:%M:%S')
 
-		if os.path.exists(f'backups\\{now}\\{online[server][0]}'):
-			mPrint('Hai creato un backup meno di un minuto fa!')
+		if os.path.exists(f'backups\\{now}\\{server[serverID].name}'):
+			mPrint('ERROR', 'Hai creato un backup meno di un minuto fa!')
 		else:
-
-			if online[server][1] == 1:
-				if isServerAlive(config['server-ip'], online[server][2]):
+			if server[serverID].state == 1:
+				if Servers.isAlive(config['server-ip'], server[serverID].port): #FIXME 4
 					splash = getSplash('backup')
-					sendRcon(server,'tellraw @a', str(tellraw.make(text=splash, color='yellow', bold=True)))
-					rconSave(server)
+					sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='yellow', bold=True)))
+					rconSave(serverID)
 			
-			for i in range(len(back)):
-				if (int(now[-2:]) - 1 == int(back[i][1][-2:])) and (now[:-2] == back[i][1][:-2]):
-					if os.path.exists(f'backups\\{back[i][1]}\\{online[server][0]}'):
-						backDir = f'backups\\{now}\\{online[server][0]}'
+			for x in range(len(back)):
+				if (int(now[-2:]) - 1 == int(back[x][1][-2:])) and (now[:-2] == back[x][1][:-2]):
+					if os.path.exists(f'backups\\{back[x][1]}\\{server[serverID].name}'):
+						backDir = f'backups\\{now}\\{server[serverID].name}'
 						break
 					else:
-						backDir = f'backups\\{back[i][1]}\\{online[server][0]}'
+						backDir = f'backups\\{back[x][1]}\\{server[serverID].name}'
 						break
 				else:
-					backDir = f'backups\\{now}\\{online[server][0]}'
-
+					backDir = f'backups\\{now}\\{server[serverID].name}'
 
 			if len(back) == 0:
-				backDir = f'backups\\{now}\\{online[server][0]}'
+				backDir = f'backups\\{now}\\{server[serverID].name}'
 
 			try:
 				os.mkdir(f'backups\\{now}')
@@ -1165,7 +1259,7 @@ def backup(server=-2): #-1: all; -2:online
 			nFolders = next(os.walk('backups'))[1]
 			if len(nFolders) > int(config['max-backup-folders']):
 				n = len(nFolders) - int(config['max-backup-folders'])
-				for i in range(n):
+				for x in range(n):
 					nFolders = next(os.walk('backups'))[1]
 					rem = min(nFolders)
 					path = f'backups\\{rem}'
@@ -1173,33 +1267,29 @@ def backup(server=-2): #-1: all; -2:online
 					mPrint('WARN', 'Il numero di backup supera il limite, elimino le cartelle in più')
 
 			os.mkdir(backDir)
-			
-			copy_tree(online[server][0], backDir)
+			copy_tree(server[serverID].name, backDir)
 
-
-			mPrint('INFO', f'Fatto ({online[server][0]})')
-
+			mPrint('INFO', f'Fatto ({server[serverID].name})')
 			backSync()
 
-def autobackup():
+def autobackup(): #FIXME 3
 	backNames = []
 	''' UNCOMMENT THIS LATER
-	for i in range(len(online)):
-		if online[i][1] == 1:
-			if isServerAlive(config['server-ip'], online[i][2]):
-				backNames.append(online[i][0])
+	for x in range(Servers.serverCount):
+		if server[i].state == 1:
+			if Servers.isAlive(config['server-ip'], server[i].port):
+				backNames.append(server[i].name)
 	if len(backNames) <= 0:
 		mPrint('WARN', 'Nessun server rilevato online, autobackup funziona solo per i server online.')
 		return 0
 	else:
 		return backNames
 	'''
-	for i in range(len(online)):
-		backNames.append(online[i][0])
+	for x in range(Servers.serverCount):
+		backNames.append(server[x].name)
 	return backNames
 
-
-def delbackup(backupID = None):
+def delbackup(backupID):
 	mPrint('FUNC', f'delbackup({backupID})')
 	backSync()
 
@@ -1207,19 +1297,18 @@ def delbackup(backupID = None):
 		int(backupID)
 	except ValueError:
 		backupAA = backupID
-		for i in range(len(back)):
-			if back[i][0] == backupAA:
-				backupID = i
+		for x in range(len(back)):
+			if back[x][0] == backupAA:
+				backupID = x
 	else:
 		backupID = int(backupID)
-
 
 	nServer = len(back[backupID][2])
 	mPrint('WARN', f'Sei sicuro di voler eliminare il backup del giorno {back[backupID][1]}?')
 	mPrint('WARN', 'QUEI DATI ANDRANNO PERSI PER SEMPRE (un sacco di tempo)')
 	
-	if input('(Y/N)> ').lower() == 'y':
-		logToFile('(Y/N)> Y')
+	if yesNoInput(input('(Y/n)> ')) == 'y':
+		logToFile('(Y/n)> Y')
 		path = 'backups\\' + back[backupID][1]
 		try:
 			shutil.rmtree(path)
@@ -1227,22 +1316,18 @@ def delbackup(backupID = None):
 			pass
 	backSync()
 
-
-
-def restorebackup(server):
+def restorebackup(server): #COMBAK implement function
 	mPrint('FUNC', f'restorebackup({server})')
 	pass
 
-
-def num_string(n):
+def num_string(n): #Transforms number to char -> 1=a, 26=z, 27=aa, 53=ba...
 	string = ""
 	while n > 0:
 		n, remainder = divmod(n - 1, 26)
 		string = chr(65 + remainder) + string
 	return string.lower()
 
-
-def help(): #works but remember to update 
+def help(): #general command descriptions #TODO add commands to help  
 	mPrint('FUNC', f'help()')
 	rPrint('\nBenvenuto nella lista comandi,')
 	rPrint('digita \'<comando> help\' per avere ulteriori informazioni\n')
@@ -1266,7 +1351,7 @@ def help(): #works but remember to update
 	rPrint('     rcon -> Visualizza o aggiorna la porta rcon')
 	rPrint('  ----#-------------------#----')
 
-def inHelp(menu): 
+def inHelp(menu): #detailed command specific helps 
 	mPrint('FUNC', f'inHelp({menu})')
 	rPrint('\n\n')
 	menu = str(menu)
@@ -1371,51 +1456,17 @@ def inHelp(menu):
 	else:
 		rPrint('Aiuti non trovati per questo comando...')
 
-'''
-configobbj
-keyboard
-mcrcon
-colorama
-requests
-
-
-back{id: [aaId, date, [IDs]} 
-            0     1    2[]  
-
-#todo
-
-#print something randomly in server if online
-#automate first server start
-#hot add server
-
-#  -------------------------- BACKUP RELATED --------------------------  #
-
-#autobackup: [time (minutes)]
-
-#  --------------------------------------------------------------------  #
-
-
-
-#reminders
-	add everything in help
-		set command
-	LOOK THROUGH EVERY FUCKING COMMAND
-'''
-
-
-
 
 #runtime start#
-
-#Preparazione
+#Preparazione (step 1)
 try:
 	createLog()
 
-	if(os.path.isfile('properties.ini') == False):#works (checks if files are good)
+	if(os.path.isfile('properties.ini') == False): #works (checks if files are good)
 		mPrint('INFO', '\nConfig file does not exist, creating one...')#why am I writing in different nations
-		createConfig()
+		createConfig() # adds configs to config file
 		mPrint('INFO', 'properties.ini creato, modificalo prima di avviare un server!')#sure idk
-		crash()
+		crash() #brutal but works i guess
 	else:
 		if checkConfig() == 1:
 			mPrint('INFO', 'Modifica l\'ip nel file properties.ini!')
@@ -1430,24 +1481,23 @@ try:
 		devLogs = False if devLogs == 'False' else True
 
 		mPrint('INFO', f'cfglog: {config["log"]}')
-		if(config['server-ip'] == '' or config['server-ip'].count('.')!=3 or not config['server-ip'].find('x') == -1):
+		if(config['server-ip'] == '' or config['server-ip'].count('.')!=3 or not config['server-ip'].find('x') == -1): #kind of check if ip is good
 			mPrint('FATAL', 'Questo non è un problema del codice, il file properties è errato, Hai impostato correttamente l\'ip?')
 			crash()
-		if(config['server-port'] == '' or config['server-port'].isnumeric() == False or int(config['server-port']) >= 25575):
+		if(config['server-port'] == '' or config['server-port'].isnumeric() == False or int(config['server-port']) >= int(config['rcon-port'])): #kind of check if port is good
 			mPrint('FATAL', 'Questo non è un problema del codice, il file properties è errato, Hai impostato correttamente la porta?')
-			mPrint('INFO', 'Ricorda che la porta deve essere < 25575')
+			mPrint('INFO', 'Ricorda che la porta deve essere < rcon-port')
 			crash()
 		mPrint('INFO', 'Inizializzo lo starter con ip: '+ str(config['server-ip'])+':'+str(config['server-port']))
 
 	mPrint('INFO', 'Se ci sono server online, usa il comando \'check help\' o \'set help\' per informazioni')
 
 	mPrint('INFO', 'Loading server list...')
-
 	loadServers()
 
 	mPrint('INFO', 'Loading other properties...')
-	bmx = config['max-backup-folders']
-
+	maxBackupFolders = config['max-backup-folders']
+	maxServers = int(config['rcon-port']) - int(config['server-port'])
 
 except Exception:
 	prtStackTrace(True)
@@ -1456,16 +1506,17 @@ except Exception:
 rPrint('\n\n')
 rPrint('| Benvenuto nel server starter!           |')
 rPrint('| - Premi \'h\' per la lista dei comandi    |')
-rPrint('| Creato da Latif\u2122 Co., Ltd.              |')
+rPrint('| Creato da Latif                         |')
+mPrint('INFO', f'| Puoi aprire {maxServers} server, usa \'info\' per informazioni')
 
-
+#cmds: bottom of function
 def main(run):
 	global log
 	print('>', end=' ')
 	command = input().split(' ')
 	logToFile('> ' + ' '.join(command))
 
-	if len(command) == 2:#
+	if len(command) == 2:# <cmd> help
 		if command[1] == 'help':
 			inHelp(command[0])
 			return 0
@@ -1507,7 +1558,7 @@ def main(run):
 					backList()
 			else:
 				try:
-					idToBack = int(command[1]) 
+					#idToBack() = int(command[1]) FIXME 0
 					backup(int(command[1]))
 				except ValueError:
 					mPrint('ERROR', 'Se hai provato ad inserire un ID, usane uno numerico.')
@@ -1544,11 +1595,11 @@ def main(run):
 
 	elif command[0] == 'sync':
 		if len(command) == 1: #Sync all server
-			rPrint('Vuoi sincronizzare i settings con tutti i server (Y/N): ')
-			if input().lower() == 'y':
+			rPrint('Vuoi sincronizzare i settings con tutti i server (Y/n): ')
+			if yesNoInput(input()) == 'y':
 				changeProperties('all')
 				
-		elif 2 == len(command): #Sync parameter
+		elif len(command) == 2: #Sync parameter
 			try:
 				tmp = changeProperties(command[1])
 				if tmp == 69:
@@ -1557,7 +1608,7 @@ def main(run):
 				mPrint('ERROR', ' La forma del comando è sbagliata??')
 				prtStackTrace()
 
-		elif 3 == len(command): #Sync parameter server-id
+		elif len(command) == 3: #Sync parameter server-id
 			try:
 				tmp = changeProperties(command[1], int(command[2]))
 				if tmp == 69:
@@ -1602,19 +1653,16 @@ def main(run):
 				rconSync()
 		except IndexError:
 			mPrint('INFO', f'rcon.port: {rconPort}, rcon.password: {rconPsw}')
-			mPrint('WARN', 'DO NOT MANUALLY CHANGE THEM.')
+			mPrint('WARN', 'DO NOT MANUALLY CHANGE THEM.') #wtfym fix this FIXME
 
 	elif command[0] == 'log':
-		if log == True:
-			log = False
-			updateConfig('log', log)
-		else:
-			log = True
-			updateConfig('log', log)
+		log = False if log else True
+		updateConfig('log', log)
+
 		mPrint('INFO', 'log is now: ' + str(log))
 
 	elif command[0] == 'end':
-		#CHECK ONLINE
+		#TODO 0 CHECK ARE THERE ONLINE SERVERS?
 		crash()
 
 	elif command[0] == 'h' or command[0] == 'help' or command[0] == '?':
@@ -1630,7 +1678,6 @@ def main(run):
 		else:
 			pass #Print help
 
-
 	elif command[0] == 'ls':
 		if len(command) == 1:
 			ls()
@@ -1643,7 +1690,7 @@ def main(run):
 		else:
 			mPrint('WARN', 'Comando non riconosciuto.')
 
-	elif command[0] == 'dev':
+	elif command[0] == 'dev': #Works in IDLE shell
 		mPrint('DEV', 'Entered IDLE dev mode.')
 		return -2
 
@@ -1655,15 +1702,31 @@ def main(run):
 
 	return 0
 
-#Mainloop
-#Commands: start, sync, ip | server-ip, port | server-port, rcon, log, end, h, ls; online, set
+# -------- COMMANDS --------
+# start <serverID> [port]	//serverID can be string
+# stop <serverID> [port]	//serverID can be string
+# restart <serverID>		//serverID can be string
+# backup/back [cmd]			//cmd: serverID / all / online / list [serverID]
+# delbackup <serverID> 		//ADD OPTIONS PLS
+# autobackup [time (minutes)] (folder auto\id) <-replace latest //REVIEW
+# set <serverID> <status>	//manually sets serverID to status (on/off line) USE check INSTEAD only test purposes
+# check <serverID>			//pings server port to check if it's on
+# sync [setting] [serverID]	//without params syncs everything to every server
+# abort <-f/-b>				//-f: force -b: backup
+# ip/server-ip [newIP]		//if no params: shows IP; else: sets newIP 
+# port/server-port [newPort]//if no params: shows port; else: sets newPort
+# rcon [-s]					//shows rcon params; -s: syncs rcon for some reason
+# log						//Switches script log on/off
+# end						//stops script
+# h/help					//help
+# xmx/ram [ram] <serverID>	//shows / changes xmx value; ex syntax: xmx 4G 2 | xmx 1024M
+# ls [-f / -o / -u]			//-f: checks if servers are still online and lists them / -o lists allegedly online servers / -u reloads server list
+# dev						//exits sctipt so you can call functions and shit (IDLE shell)
 
-crashcount = 0
+# -------- MAINLOOP --------
 autoBack = False
-seconds = 0 
+seconds = 0 #autobackup (not yet implemented)
 while run:
-
-	maxCrashes = 4
 	try:
 		resp = main(run)
 		if resp == -2:
@@ -1672,7 +1735,6 @@ while run:
 			autoBack = True
 			startTime = time.time()
 			seconds = int(resp)*60
-
 		elif resp == 0 and autoBack == True:
 			autoBack = False
 			mPrint('INFO', 'Il backup automatico è stato disattivato')
@@ -1683,14 +1745,10 @@ while run:
 				subprocess.Popen(["python", "zscripts\\autobackup.py"] + backnames, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 	except Exception:
-		if crashcount > maxCrashes:
-			prtStackTrace()
-			print(f'Il manager è crashato {crashcount} volte, guarda il log per informazioni.')
-			input('Premi invio per uscire')
-			exit()
-		else:
-			prtStackTrace()
-			continue
+		prtStackTrace()
+		print(f'Il manager è crashato, guarda il log per informazioni.')
+		input('Premi invio per uscire')
+		exit()
 
 
 # __    __  __    __    _____    ____  _   _  ____  ___     ___  _____  ____  ____    ___  __  __  ___  _  _  ___ 

@@ -1,0 +1,85 @@
+# TODO
+- ✔ Maybe change online dict to class? could benefit i think
+- ✔ When script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
+- ✔ Fix de #include mess for local scripts do it properly
+- ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
+- ⭐⭐⭐⭐⭐ Maybe change back dict to class? just like online (now Server)!
+- ⭐⭐⭐⭐ check placeholder.bat when starting 
+- ⭐⭐⭐⭐config[] is an hassle to manage... maybe class???
+- ⭐⭐⭐hot add server
+- ⭐⭐automate first server start
+- ⭐⭐add per-server settings
+- ⭐automatically set bungeecord settings (command)
+- ⭐AT startup:
+	- Check if servers are on (fast or threads?)
+    - timeout?
+- ⭐print something randomly in server if online
+- ⭐check if port is forwarded at startup
+- ⭐add info command
+- dirGrab() function seems to be used A LOT (FIXME 6 could lower the usage), possible BUG: (TESTING *1)
+- TODO 0
+
+# FIXME
+- FIXME 0 idToBack() does not exist
+- FIXME 2 multithreading excuse
+- FIXME 3 autobackup function implement
+- FIXME 4 tell server to save world
+- FIXME 6 could use `server[ServerID].name` ?? (consider for every `dirGrab()` call)
+- FIXME 9 TOTAL BULLSHIT FIND A WAY AROUND IT 
+- FIXME 10 info on line
+
+# TESTING
+- ⭐⭐⭐what if dirs change runtime? *1
+- ⭐⭐What happens if start.bat is not there
+- ⭐LOOK THROUGH EVERY FUCKING COMMAND
+- ⭐⭐⭐⭐⭐⭐ start / stop / restart functions
+- ⭐⭐ Stopping Server1 sometimes halts until you enter in game console
+- ✔ `in server[i]` syntax
+
+# CODE REVIEW
+- printOnline() and listOnline() with ls()
+- sendRcon()
+- verifyStatus()
+- batter():
+	- I file che crea vanno bene per lo script ma non sono utilizzabili dall'utente in maniera manuale
+	- Poss. sol:
+		- Crea 2 file bat
+		- Modifica il file bat prima di far partire il server
+		
+# ⭐REMINDERS⭐
+- add everything in help
+- add `requirements.txt`
+- update createConfig() when changing properties.ini
+
+#  -------------------------- Structures --------------------------  #
+Backups dict:
+	back{id: [aaId, date, [IDs]} | `back[id] = [aaId, date, [IDs]]`
+    	        0     1    2[]  
+
+Online Class:
+	start.py has a list of Server objects -> server[Server]
+	properties:
+	server[x].name
+	server[x].state
+	server[x].port
+	server[x].rcon
+	server[x].psw  #YET TO IMPLEMENT
+
+	functions:
+	isAlive()	isServerAlive is moving there (noy implemented yet)
+	isOnline()	(returns False if state == 0 else True)
+	setParam(param, value)	sets an Object param
+	getData()	Returns Object properties in a list
+
+
+Online dict DEPRECATED:
+	online = {onlineId: ['Server', state, port, rcon]}  |  `online[onlineId] = ['Server', state, port, rcon]`
+	state can be: 0:offline, 1:online, 2:restarting
+#  -------------------------- BACKUP RELATED --------------------------  #
+
+#autobackup: [time (minutes)] multithreading??
+restorebackup()
+
+#  --------------------------------------------------------------------  #
+
+
