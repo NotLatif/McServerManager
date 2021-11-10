@@ -1,4 +1,7 @@
 # TODO FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW, NB, BUG, QUESTION, COMBAK, TEMP, DEBUG, OPTIMIZE
+from colorama.ansi import Back
+
+
 try:
 	import os
 	import subprocess
@@ -40,7 +43,7 @@ logFile = str(f'logs\\{logNow}.txt')
 
 extIp = get('https://api.ipify.org').text
 
-back = {}
+#back = {}
 #back{id: [aaId, date, [IDs]}
 
 server = [] #Will contain Servers objects
@@ -142,9 +145,35 @@ class Servers:
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			return s.connect_ex((ip, port)) == 0
 
+backup = []
 class Backups:
-	def __init__(self, aaID, date, serverIDs) -> None:
-		pass
+	def __init__(self, aaID,  date, serverIDs):
+		self.aaID = aaID
+		self.date = date
+		self.serverIDs = serverIDs
+		print(f'Backups({aaID}, {date}, {serverIDs})')
+
+	@property
+	def aaID(self):
+		return self.__aaID
+	@aaID.setter
+	def aaID(self, newID):
+		self.__aaID = newID
+	
+	@property
+	def date(self):
+		return self.__date
+	@aaID.setter
+	def date(self, newDate):
+		self.__date = newDate
+
+	@property
+	def serverIDs(self):
+		return self.__serverIDs
+	@serverIDs.setter
+	def serverIDs(self, newIDs):
+		self.__serverIDs = newIDs
+
 
 class Cfg(): # too much work to do rn, will COMBAK later
 	pass
@@ -1168,20 +1197,20 @@ def backList(serverID = -1): # ???
 	backSync()
 	rPrint(f'{Fore.GREEN}|--------- BACKUPS ---------{Fore.RESET}')
 	if serverID == -1:
-		for x in range(len(back)):
-			rPrint(f'{Fore.MAGENTA}|->{back[x][1]}{Fore.RESET} (ID: {back[x][0]})')
-			for j in range(len(back[x][2])):
-				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {back[x][2][j]}')
+		for x in range(len(backup)):
+			rPrint(f'{Fore.MAGENTA}|->{backup[x].date}{Fore.RESET} (ID: {backup[x].aaID})')
+			for j in range(len(backup[x].serverIDs)):
+				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {backup[x].serverIDs[j]}')
 			rPrint('|')
 	else:
-		for x in range(len(back)):
-			if server[serverID].name in back[x][2]:
+		for x in range(len(backup)):
+			if server[serverID].name in backup[x].serverIDs:
 				rPrint('|')
-				rPrint(f'{Fore.MAGENTA}|->{back[x][1]}{Fore.RESET} (ID: {back[x][0]})')
+				rPrint(f'{Fore.MAGENTA}|->{backup[x].date}{Fore.RESET} (ID: {backup[x].date})')
 				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({x})-> {server[serverID].name}')
 	rPrint(f'{Fore.GREEN}|--------------------------\n{Fore.RESET}')
 
-def backSync(): # ???
+def backSync(): # Ricarica da capo i backup
 	mPrint('FUNC', f'backSync()')
 	if not os.path.exists('backups'):
 		os.mkdir('backups')
@@ -1190,7 +1219,8 @@ def backSync(): # ???
 	folder = os.listdir(".\\backups")
 	x = 0
 	
-	back.clear()
+	for x in range(len(backup)):
+		backup.pop()
 
 	for x in range(len(folder)):
 		sub = os.listdir(f".\\backups\\{folder[x]}")
@@ -1199,10 +1229,10 @@ def backSync(): # ???
 			folder = os.listdir(".\\backups")
 			mPrint('WORK', 'Cartella vuota.')
 		else:
-			back[x] = [num_string(x+1), folder[x], sub]
+			backup.append(Backups(num_string(x+1), folder[x], sub))
 			mPrint('WORK', f'[{num_string(x)}, {folder[x]}, {sub}]')
 			x+=1
-
+"""
 def backup(serverID=-2): #-1: all; -2:online
 	mPrint('FUNC', f'backup({serverID})')
 	
@@ -1237,7 +1267,7 @@ def backup(serverID=-2): #-1: all; -2:online
 					sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='yellow', bold=True)))
 					rconSave(serverID)
 			
-			for x in range(len(back)):
+			for x in range(Backups.numOfBackups):
 				if (int(now[-2:]) - 1 == int(back[x][1][-2:])) and (now[:-2] == back[x][1][:-2]):
 					if os.path.exists(f'backups\\{back[x][1]}\\{server[serverID].name}'):
 						backDir = f'backups\\{now}\\{server[serverID].name}'
@@ -1248,7 +1278,7 @@ def backup(serverID=-2): #-1: all; -2:online
 				else:
 					backDir = f'backups\\{now}\\{server[serverID].name}'
 
-			if len(back) == 0:
+			if Backups.numOfBackups == 0:
 				backDir = f'backups\\{now}\\{server[serverID].name}'
 
 			try:
@@ -1297,7 +1327,7 @@ def delbackup(backupID):
 		int(backupID)
 	except ValueError:
 		backupAA = backupID
-		for x in range(len(back)):
+		for x in range(Backups.numOfBackups):
 			if back[x][0] == backupAA:
 				backupID = x
 	else:
@@ -1315,7 +1345,7 @@ def delbackup(backupID):
 		except FileNotFoundError:
 			pass
 	backSync()
-
+"""
 def restorebackup(server): #COMBAK implement function
 	mPrint('FUNC', f'restorebackup({server})')
 	pass
@@ -1456,7 +1486,6 @@ def inHelp(menu): #detailed command specific helps
 	else:
 		rPrint('Aiuti non trovati per questo comando...')
 
-
 #runtime start#
 #Preparazione (step 1)
 try:
@@ -1572,6 +1601,10 @@ def main(run):
 			rPrint('Comando non riconosciuto, \'delbackup help\' per aiuto')
 
 	elif command[0] == 'autobackup':	#autobackup: [time (minutes)] (folder auto\id) <-replace latest
+		print(back)
+		print('')
+		for x in back:
+			print(back[x])
 		if len(command) == 2:
 			try:
 				auto = int(command[1])
