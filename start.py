@@ -142,6 +142,10 @@ class Servers:
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			return s.connect_ex((ip, port)) == 0
 
+class Backups:
+	def __init__(self, aaID, date, serverIDs) -> None:
+		pass
+
 class Cfg(): # too much work to do rn, will COMBAK later
 	pass
 
@@ -242,8 +246,10 @@ def logToFile(newdata): #logs data to logFile
 def yesNoInput(input): #parses (Y/n) format input
 	input = input.lower()
 	if (input == 'y' or input == '' or input == 'yes'):
+		mPrint('INFO', 'Comand accettato')
 		return 'y'
 	else:
+		mPrint('INFO', 'Comand annullato')
 		return 'n'
 
 def rPrint(text, reqlog=False): #Prints data without colors/prefixes
@@ -520,9 +526,10 @@ def changeSingleProperty(key, value, serverID):# changes only one property for a
 	temp_cfg.write()
 	remQuote(serverDir)
 
-def rconSync(rconPort): #sets an rconPort for all the servers found
+def rconSync(rconPort = -1): #sets an rconPort for all the servers found
+	rconPort = int(config['rcon-port']) if (rconPort == -1) else int(rconPort)
 	mPrint('FUNC', f'rconSync({rconPort})')
-	if rconPort < config['rcon-port']:
+	if rconPort < int(config['rcon-port']):
 		mPrint('WARN', f'rcon.port è impostato a {rconPort}')
 		mPrint('WARN', f'per prevenire problemi con le porte usate dai server')
 		mPrint('WARN', f'Impostare un numero maggiore/uguale a 25575.')
@@ -1159,20 +1166,20 @@ def rconSave(serverID): #TODO check if this works
 def backList(serverID = -1): # ???
 	mPrint('FUNC', f'backList()')
 	backSync()
-	rPrint(f'{Fore.GREEN}|------Backups------\n8{Fore.RESET}')
+	rPrint(f'{Fore.GREEN}|--------- BACKUPS ---------{Fore.RESET}')
 	if serverID == -1:
 		for x in range(len(back)):
-			rPrint('|')
 			rPrint(f'{Fore.MAGENTA}|->{back[x][1]}{Fore.RESET} (ID: {back[x][0]})')
 			for j in range(len(back[x][2])):
 				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {back[x][2][j]}')
+			rPrint('|')
 	else:
 		for x in range(len(back)):
 			if server[serverID].name in back[x][2]:
 				rPrint('|')
 				rPrint(f'{Fore.MAGENTA}|->{back[x][1]}{Fore.RESET} (ID: {back[x][0]})')
 				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({x})-> {server[serverID].name}')
-	rPrint(f'{Fore.GREEN}|-------------------\n8{Fore.RESET}')
+	rPrint(f'{Fore.GREEN}|--------------------------\n{Fore.RESET}')
 
 def backSync(): # ???
 	mPrint('FUNC', f'backSync()')
@@ -1282,7 +1289,7 @@ def autobackup(): #FIXME 3
 		backNames.append(server[x].name)
 	return backNames
 
-def delbackup(backupID = None):
+def delbackup(backupID):
 	mPrint('FUNC', f'delbackup({backupID})')
 	backSync()
 
@@ -1295,7 +1302,6 @@ def delbackup(backupID = None):
 				backupID = x
 	else:
 		backupID = int(backupID)
-
 
 	nServer = len(back[backupID][2])
 	mPrint('WARN', f'Sei sicuro di voler eliminare il backup del giorno {back[backupID][1]}?')
@@ -1310,7 +1316,7 @@ def delbackup(backupID = None):
 			pass
 	backSync()
 
-def restorebackup(server):
+def restorebackup(server): #COMBAK implement function
 	mPrint('FUNC', f'restorebackup({server})')
 	pass
 
