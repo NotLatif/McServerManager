@@ -143,7 +143,20 @@ class Servers:
 	def isAlive(ip, port):
 		mPrint('FUNC', f'Servers.isAlive({ip}, {port})')
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-			return s.connect_ex((ip, port)) == 0
+			alive = s.connect_ex((ip, port)) == 0
+			return alive
+	
+	def isAliveUpdate(self, ip, port):
+		mPrint('FUNC', f'Servers.isAliveUpdate({ip}, {port})')
+		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+			alive = s.connect_ex((ip, port)) == 0
+			if self.isOnline() and (not alive):
+				mPrint('WARN', f'Il server risultava online, ma è in realtà offline. Aggiorno il dato')
+				self.state = 0
+			elif (not self.isOnline()) and (alive):
+				mPrint('WARN', f'Il server risultava offline, ma è in realtà online. Aggiorno il dato')
+				self.state = 1
+			return alive
 
 backup = []
 class Backups:
@@ -173,6 +186,24 @@ class Backups:
 	@serverIDs.setter
 	def serverIDs(self, newIDs):
 		self.__serverIDs = newIDs
+
+	def getMin(self):
+		return self.date[-2:]
+	
+	def getTimeDate(self):
+		return self.date[:-3]
+	
+	def backAAtoId(backupID):
+		try:
+			int(backupID)
+		except ValueError:
+			backupAA = backupID
+			for x in range(len(server)):
+				if backup[x].aaID == backupAA:
+					backupID = x
+		else:
+			backupID = int(backupID)
+		return backupID
 
 
 class Cfg(): # too much work to do rn, will COMBAK later
@@ -546,6 +577,12 @@ def batFixer(serverID, xmx = None): #creates a raw batch file and sends it to ba
 		batter(x, batCopy, serverID, s)
 
 def changeSingleProperty(key, value, serverID):# changes only one property for a specific (server.properties) file
+	""" chenges one propery for a specific serverID
+	key -> server.properties key
+	value -> key value
+	serverID -> int
+	server/server.properties -> key=value
+	"""
 	mPrint('FUNC', f'startChangeProperties({key}, {value}, {serverID})')
 
 	serverDir = server[serverID].name + '\\server.properties'
@@ -879,22 +916,23 @@ def start(serverID, port=None):#Starts one/all server/s
 				mPrint('INFO', f'Server segnalato online in realtà è offline, aggiorno lo stato per il server {serverID}')
 				server[x].state = 0
 
-		if port == server[x].port and server[x].state != 0: #Controllo se la porta è libera
+		if port == server[x].port and server[x].state != 0: #FIXME 1 egualianze inutili e potrebbero rompere il codice, controlla invece se la porta è occupata a prescindere
 			mPrint('INFO', 'Controllo lo stato del server...')
 			if Servers.isAlive(config['server-ip'], port):
 				mPrint('WARN', f'Esiste un server online su questa porta: {port}')
 				mPrint('INFO', 'Provo con le prossime 5 porte...')
 				starterP = port
-				for y in range(1, 5): #Provo le prossime 5 per qualche motivo
-					yPort = port+y
-					if Servers.isAlive(config['server-ip'], yPort):
-						mPrint('INFO', f'{yPort} non disponibile.')
+				for y in range(1, 5):
+					port = port+y
+					if Servers.isAlive(config['server-ip'], port):
+						mPrint('INFO', f'{port} non disponibile.')
 					else:
-						mPrint('INFO', f'Porta {yPort} libera, uso questa.')
-						port = yPort
+						mPrint('WARN', f'Porta {port} libera, uso questa.')
+						port = port
+						changeSingleProperty('server-port', port, x)
 						break
-				if port == starterP:
-					mPrint('WARN', f'Nessun server trovato su 6 porte a partire da {starterP}')
+				if port == starterP+5:
+					mPrint('ERROR', f'Nessun server trovato su 6 porte a partire da {starterP}')
 					return 0
 
 	mPrint('WORK', f'building server path for server id <{str(serverID)}>')
@@ -1186,29 +1224,11 @@ def abort(method): #implemented as a MEME, WARNING, -f WILL NOT SAVE DATA, -b IS
 		time.sleep(5)
 		os.system('shutdown /s /t 1')
 	elif method == '-b':
-		backup(-1)
+		makeBackup(-1)
 		os.system('shutdown /s /t 1')
 
 def rconSave(serverID): #TODO check if this works
 	sendRcon(serverID, 'save-all')
-
-def backList(serverID = -1): # ???
-	mPrint('FUNC', f'backList()')
-	backSync()
-	rPrint(f'{Fore.GREEN}|--------- BACKUPS ---------{Fore.RESET}')
-	if serverID == -1:
-		for x in range(len(backup)):
-			rPrint(f'{Fore.MAGENTA}|->{backup[x].date}{Fore.RESET} (ID: {backup[x].aaID})')
-			for j in range(len(backup[x].serverIDs)):
-				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {backup[x].serverIDs[j]}')
-			rPrint('|')
-	else:
-		for x in range(len(backup)):
-			if server[serverID].name in backup[x].serverIDs:
-				rPrint('|')
-				rPrint(f'{Fore.MAGENTA}|->{backup[x].date}{Fore.RESET} (ID: {backup[x].date})')
-				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({x})-> {server[serverID].name}')
-	rPrint(f'{Fore.GREEN}|--------------------------\n{Fore.RESET}')
 
 def backSync(): # Ricarica da capo i backup
 	mPrint('FUNC', f'backSync()')
@@ -1232,69 +1252,80 @@ def backSync(): # Ricarica da capo i backup
 			backup.append(Backups(num_string(x+1), folder[x], sub))
 			mPrint('WORK', f'[{num_string(x)}, {folder[x]}, {sub}]')
 			x+=1
-"""
-def backup(serverID=-2): #-1: all; -2:online
-	mPrint('FUNC', f'backup({serverID})')
-	
+
+def backList(serverID = -1): # ???
+	mPrint('FUNC', f'backList()')
+	backSync()
+	rPrint(f'{Fore.GREEN}|--------- BACKUPS ---------{Fore.RESET}')
+	if serverID == -1:
+		for x in range(len(backup)):
+			rPrint(f'{Fore.MAGENTA}|->{backup[x].date}{Fore.RESET} (ID: {backup[x].aaID})')
+			for j in range(len(backup[x].serverIDs)):
+				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({j})-> {backup[x].serverIDs[j]}')
+			rPrint('|')
+	else:
+		for x in range(len(backup)):
+			if server[serverID].name in backup[x].serverIDs:
+				rPrint('|')
+				rPrint(f'{Fore.MAGENTA}|->{backup[x].date}{Fore.RESET} (ID: {backup[x].date})')
+				rPrint(f'{Fore.MAGENTA}|{Fore.RESET}|({x})-> {server[serverID].name}')
+	rPrint(f'{Fore.GREEN}|--------------------------\n{Fore.RESET}')
+
+def makeBackup(serverID=-2): #-1: all; -2:online
+	mPrint('FUNC', f'makeBackup({serverID})')
+	if(len(server) == 0):
+		mPrint('ERROR', 'Non esiste nessun server!')
 	if not os.path.exists('backups'):
 		os.mkdir('backups')
 		mPrint('INFO', 'Created backup directory.')
+
 	if serverID==-1: #all
 		for x in range(Servers.serverCount):
-			backup(x)
-
+			makeBackup(x)
 	elif serverID==-2: #online
 		for x in range(Servers.serverCount):
-			if server[x].state == 1:
-				if Servers.isAlive(config['server-ip'], server[x].port):
-					backup(x)
-				else:
-					mPrint('WARN', f'Il server "{server[x].name}" è segnalato online ma risulta offline. Lo imposto come server offline.')
-					server[x].state = 0
-	else:
-		if not(serverID >= 0 and serverID <= Servers.serverCount):
+			if server[x].state == 1 and server[x].isAliveUpdate():
+				makeBackup(x)
+	else: #specific serverID
+		if not(0 <= serverID <= Servers.serverCount): #serverID is in range of existing servers
 			mPrint('WARN', f'Server {server} non trovato.')
-			return -1
+			return -2
 
-		now = datetime.now().strftime('%Y/%m/%d-%H:%M:%S')
+		now = datetime.now().strftime('%Y-%m-%d_%H-%M') #folder name format
 
-		if os.path.exists(f'backups\\{now}\\{server[serverID].name}'):
-			mPrint('ERROR', 'Hai creato un backup meno di un minuto fa!')
-		else:
-			if server[serverID].state == 1:
-				if Servers.isAlive(config['server-ip'], server[serverID].port): #FIXME 4
-					splash = getSplash('backup')
-					sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='yellow', bold=True)))
-					rconSave(serverID)
+		if os.path.exists(f'backups\\{now}\\{server[serverID].name}'): #if backup already present
+			mPrint('ERROR', f'Hai creato un backup per il server "{server[serverID].name}" meno di un minuto fa!')
+		else: #can backup, save servers if online
+			if server[serverID].state == 1 and server[serverID].isAliveUpdate():
+				splash = getSplash('backup')
+				sendRcon(serverID,'tellraw @a', str(makeTellraw(text=splash, color='yellow', bold=True)))
+				rconSave(serverID)
 			
-			for x in range(Backups.numOfBackups):
-				if (int(now[-2:]) - 1 == int(back[x][1][-2:])) and (now[:-2] == back[x][1][:-2]):
-					if os.path.exists(f'backups\\{back[x][1]}\\{server[serverID].name}'):
-						backDir = f'backups\\{now}\\{server[serverID].name}'
-						break
-					else:
-						backDir = f'backups\\{back[x][1]}\\{server[serverID].name}'
-						break
-				else:
-					backDir = f'backups\\{now}\\{server[serverID].name}'
-
-			if Backups.numOfBackups == 0:
-				backDir = f'backups\\{now}\\{server[serverID].name}'
-
-			try:
+			#checks if server backup already exists in one minute range
+			if(os.path.exists(f'backups\\{now}\\{server[serverID].name}') is False):
+				backDir = f'backups\\{now}\\{server[serverID].name}' #if path does not exist, we can make backup
+			else:
+				mPrint('Error', f'Hai creato un backup per {server[serverID].name} meno di un minuto fa.')
+				return -3 # if path no exist, we no make backup
+			
+			try: #attempts to make dir for date if not already present
 				os.mkdir(f'backups\\{now}')
 			except FileExistsError:
 				pass
-
-			nFolders = next(os.walk('backups'))[1]
-			if len(nFolders) > int(config['max-backup-folders']):
-				n = len(nFolders) - int(config['max-backup-folders'])
+				
+			Folders = next(os.walk('backups'))[1] #what? REVIEW COMBAK later
+			if len(Folders) > int(config['max-backup-folders']): #REVIEW TEST CODE
+				n = len(Folders) - int(config['max-backup-folders'])
 				for x in range(n):
-					nFolders = next(os.walk('backups'))[1]
-					rem = min(nFolders)
+					mPrint('WARN', 'Il numero di backup supera il limite, elimino le cartelle in più?')
+					Folders = next(os.walk('backups'))[1]
+					rem = min(Folders)
 					path = f'backups\\{rem}'
-					shutil.rmtree(path)
-					mPrint('WARN', 'Il numero di backup supera il limite, elimino le cartelle in più')
+					mPrint('WARN', f'Posso eliminare il backup {path} per fare spazio, continuo?')
+					if(yesNoInput(input('(Y/n) > '))):
+						shutil.rmtree(path)
+					else:
+						return -1
 
 			os.mkdir(backDir)
 			copy_tree(server[serverID].name, backDir)
@@ -1323,29 +1354,22 @@ def delbackup(backupID):
 	mPrint('FUNC', f'delbackup({backupID})')
 	backSync()
 
-	try:
-		int(backupID)
-	except ValueError:
-		backupAA = backupID
-		for x in range(Backups.numOfBackups):
-			if back[x][0] == backupAA:
-				backupID = x
-	else:
-		backupID = int(backupID)
+	backupID = Backups.backAAtoId(backupID)
 
-	nServer = len(back[backupID][2])
-	mPrint('WARN', f'Sei sicuro di voler eliminare il backup del giorno {back[backupID][1]}?')
+	nServer = len(backup[backupID].serverIDs)
+	mPrint('WARN', f'Sono presenti {nServer} server nel backup')
+	mPrint('WARN', f'Sei sicuro di voler eliminare il backup del giorno {backup[backupID].date}?')
 	mPrint('WARN', 'QUEI DATI ANDRANNO PERSI PER SEMPRE (un sacco di tempo)')
 	
 	if yesNoInput(input('(Y/n)> ')) == 'y':
 		logToFile('(Y/n)> Y')
-		path = 'backups\\' + back[backupID][1]
+		path = 'backups\\' + backup[backupID].date
 		try:
 			shutil.rmtree(path)
 		except FileNotFoundError:
 			pass
 	backSync()
-"""
+
 def restorebackup(server): #COMBAK implement function
 	mPrint('FUNC', f'restorebackup({server})')
 	pass
@@ -1577,9 +1601,9 @@ def main(run):
 	elif command[0] == 'backup' or command[0] == 'back':#
 		if len(command) >= 2:
 			if command[1] == 'all':
-				backup(-1)
+				makeBackup(-1)
 			elif command[1] == 'online':
-				backup()
+				makeBackup()
 			elif command[1] == 'list':
 				if len(command) == 3:
 					backList(int(command[2]))
@@ -1587,8 +1611,8 @@ def main(run):
 					backList()
 			else:
 				try:
-					#idToBack() = int(command[1]) FIXME 0
-					backup(int(command[1]))
+					#idToBack() = int(command[1])
+					makeBackup(int(command[1]))
 				except ValueError:
 					mPrint('ERROR', 'Se hai provato ad inserire un ID, usane uno numerico.')
 		else:
@@ -1601,10 +1625,10 @@ def main(run):
 			rPrint('Comando non riconosciuto, \'delbackup help\' per aiuto')
 
 	elif command[0] == 'autobackup':	#autobackup: [time (minutes)] (folder auto\id) <-replace latest
-		print(back)
+		print(backup)
 		print('')
-		for x in back:
-			print(back[x])
+		for x in backup:
+			print(backup[x])
 		if len(command) == 2:
 			try:
 				auto = int(command[1])

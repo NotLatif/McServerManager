@@ -2,10 +2,11 @@
 - ✔ Maybe change online dict to class? could benefit i think
 - ✔ When script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
 - ✔ Fix de #include mess for local scripts do it properly
+- ✔ Maybe change back dict to class? just like online (now Server)!
+- ✔ makeBackup() works properly
 - ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
-- ⭐⭐⭐⭐⭐ Maybe change back dict to class? just like online (now Server)!
+- ⭐⭐⭐⭐⭐config[] is an hassle to manage... maybe class???
 - ⭐⭐⭐⭐ check placeholder.bat when starting 
-- ⭐⭐⭐⭐config[] is an hassle to manage... maybe class???
 - ⭐⭐⭐hot add server
 - ⭐⭐automate first server start
 - ⭐⭐add per-server settings
@@ -20,7 +21,7 @@
 - TODO 0
 
 # FIXME
-- FIXME 0 idToBack() does not exist
+- FIXME 1
 - FIXME 2 multithreading excuse
 - FIXME 3 autobackup function implement
 - FIXME 4 tell server to save world
@@ -37,6 +38,7 @@
 - ✔ `in server[i]` syntax
 
 # CODE REVIEW
+- cmd: `back list n` wtf does `n` do?
 - printOnline() and listOnline() with ls()
 - sendRcon()
 - verifyStatus()
