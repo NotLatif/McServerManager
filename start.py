@@ -160,7 +160,7 @@ class Servers:
 
 backup = []
 class Backups:
-	def __init__(self, aaID,  date, serverIDs):
+	def __init__(self, aaID,  date, serverIDs: list):
 		self.aaID = aaID
 		self.date = date
 		self.serverIDs = serverIDs
@@ -204,7 +204,6 @@ class Backups:
 		else:
 			backupID = int(backupID)
 		return backupID
-
 
 class Cfg(): # too much work to do rn, will COMBAK later
 	pass
