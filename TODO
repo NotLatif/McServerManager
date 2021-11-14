@@ -85,3 +85,17 @@ restorebackup()
 #  --------------------------------------------------------------------  #
 
 
+> port 25545
+[14-11-2021, 23:03:31]: [FUNC] - modPort(25545, True)
+[14-11-2021, 23:03:31]: [ERROR] - 
+Traceback (most recent call last):
+  File "c:\Users\Latif\Desktop\Programmazione\McServerManager\start.py", 
+line 1788, in <module>
+    resp = main(run)
+  File "c:\Users\Latif\Desktop\Programmazione\McServerManager\start.py", 
+line 1700, in main
+    modPort(command[1])
+  File "c:\Users\Latif\Desktop\Programmazione\McServerManager\start.py", 
+line 720, in modPort
+    if newPort >= int(config['rcon-port']):
+TypeError: '>=' not supported between instances of 'str' and 'int' 
