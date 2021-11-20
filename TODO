@@ -4,11 +4,11 @@
 - ✔ Fix de #include mess for local scripts do it properly
 - ✔ Maybe change back dict to class? just like online (now Server)!
 - ✔ makeBackup() works properly
-- ⭐⭐⭐⭐⭐⭐ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
-- ⭐⭐⭐⭐⭐config[] is an hassle to manage... maybe class???
-- ⭐⭐⭐⭐ check placeholder.bat when starting 
+- ✔ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
+- ✔ check placeholder.bat when starting 
+- ⭐⭐⭐⭐automate first server start
 - ⭐⭐⭐hot add server
-- ⭐⭐automate first server start
+- ⭐⭐⭐config[] is an hassle to manage... maybe class???
 - ⭐⭐add per-server settings
 - ⭐automatically set bungeecord settings (command)
 - ⭐AT startup:
@@ -38,7 +38,6 @@
 - ✔ `in server[i]` syntax
 
 # CODE REVIEW
-- cmd: `back list n` wtf does `n` do?
 - printOnline() and listOnline() with ls()
 - sendRcon()
 - verifyStatus()
@@ -73,7 +72,7 @@ Online Class:
 	setParam(param, value)	sets an Object param
 	getData()	Returns Object properties in a list
 
-
+V discontinued V
 Online dict DEPRECATED:
 	online = {onlineId: ['Server', state, port, rcon]}  |  `online[onlineId] = ['Server', state, port, rcon]`
 	state can be: 0:offline, 1:online, 2:restarting

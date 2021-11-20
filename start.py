@@ -26,11 +26,16 @@ except ModuleNotFoundError:
 
 print(Style.BRIGHT)
 
+######################## CHANGE ME ########################
+rconPassw = 'JRaui@*Euy2'
+#It is actually safe enough to not change the password
+#if you won't forward the rcon.port, otherwise CHANGE
+###########################################################
+
 log = True
 maxBackupFolders = 15
 maxServers = 0
 rconPort = 25575
-rconPsw = 'Rcon69Psw'
 batPlaceholderText = 'cd *PATH*\njava *MaxHeap* -jar *JARFILE* nogui' #FIXME 10: should be loaded at script startup
 
 run = True
@@ -143,10 +148,10 @@ class Servers:
 			alive = s.connect_ex((ip, port)) == 0
 			return alive
 	
-	def isAliveUpdate(self, ip, port):
-		mPrint('FUNC', f'Servers.isAliveUpdate({ip}, {port})')
+	def isAliveUpdate(self):
+		mPrint('FUNC', f"Servers.isAliveUpdate({config['server-ip']}, {self.port})")
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-			alive = s.connect_ex((ip, port)) == 0
+			alive = s.connect_ex((config['server-ip'], self.port)) == 0
 			if self.isOnline() and (not alive):
 				mPrint('WARN', f'Il server risultava online, ma è in realtà offline. Aggiorno il dato')
 				self.state = 0
@@ -376,6 +381,10 @@ def checkConfig(): #Checks if properties.ini has the required entries
 		r = 1
 	if 'server-port' not in file:
 		file['server-port'] = 25565
+	if 'rcon-port' not in file:
+		file['rcon-port'] = 25575
+	if 'rcon-passw' not in file:
+		file['rcon-passw'] = rconPassw
 	if '-Xmx' not in file:
 		file['-Xmx'] = '4G'
 	if 'max-backup-folders' not in file:
@@ -397,6 +406,7 @@ def createConfig(): #Creates properties.ini HAS TO BE UPDATED MANUALLY
 	config.filename = 'properties.ini'
 	config['server-ip'] = "192.168.1.x"
 	config['server-port'] = 25565
+	config['rcon-port'] = 25575
 	config['-Xmx'] = '4G'
 	config['log'] = False
 	config['developer-logs'] = True
@@ -623,7 +633,7 @@ def rconSync(rconPort = -1): #sets an rconPort for all the servers found
 			if 'enable-rcon' in temp_cfg:
 				mPrint('INFO', 'changing rcon.port to: ' + str(newRcon))
 				temp_cfg['rcon.port'] = newRcon
-				temp_cfg['rcon.password'] = rconPsw
+				temp_cfg['rcon.password'] = config['rcon-passw']
 				temp_cfg['enable-rcon'] = 'true'
 				temp_cfg.write()
 				remQuote(path)
@@ -633,7 +643,7 @@ def rconSync(rconPort = -1): #sets an rconPort for all the servers found
 				if not 'rcon.port' in temp_cfg:
 					temp_cfg['rcon.password'] = newRcon
 				if not 'rcon.password' in temp_cfg:
-					temp_cfg['rcon.password'] = rconPsw
+					temp_cfg['rcon.password'] = config['rcon-passw']
 				temp_cfg.write()
 				remQuote(path)
 			x+=1
@@ -763,28 +773,26 @@ def dirGrab(isStart = True): #Returns a list containing server folders in alphab
 	if(isStart == True):
 		mPrint('WORK', 'Scanning for server.properties')
 		#Controllo se c'è un server.properties
+		x = 0
 		for x in range(len(dirs)):
 			if dirs[x] == 'backups':
-				dirs[x] = '[F*3bd45]'
+				dirs[x] = 'REMOVEME()' #placeholder
 				continue
 
 			if(os.path.isfile(dirs[x]+r'\server.properties') == False) and (os.path.isfile(dirs[x]+r'\config.yml') == False):
-				mPrint('WORK', 'Found missing server.properties:')
+				mPrint('WORK', 'Found non-server dir:')
 				rPrint('\t| dir: '+dirs[x], True)
 				rPrint('\t| x  : '+str(x), True)
-				dirs[x] = '[F*3bd45]'
+				dirs[x] = 'REMOVEME()'
 				
-		i = 0
-		while True: #elimino dalla lista le cartelle che non hanno il server.properties
-			if(i+1 > len(dirs)):
-				break
-			mPrint('WORK', 'Checking x (F*3bd45) at index: ' + str(i))
-			mPrint('WORK', 'dirs[x]: ' + str(dirs[i]))
-			if(dirs[i] == '[F*3bd45]'):
-				dirs.pop(i)
-				mPrint('WORK', 'popped at x: ' + str(i))
-			else:
-				i = i+1
+		for x in range(len(dirs)): #elimino dalla lista le cartelle che non hanno il server.properties
+			mPrint('WORK', 'Checking REMOVEME at index: ' + str(x))
+			mPrint('WORK', 'dirs[x]: ' + str(dirs[x]))
+			if(dirs[x] == 'REMOVEME()'):
+				dirs.pop(x)
+				x-=1
+				mPrint('WORK', 'popped at x: ' + str(x))
+
 			
 	mPrint('DEV', 'dirGrab()->dirs: ')
 	mPrint('DEV', dirs)
@@ -859,10 +867,10 @@ def sendRcon(serverID, command, text = None): # sends message to server using mi
 		
 	mPrint('DEV', 'Invio un comando al server: ' + send)
 	mPrint('DEV', f'attempting rcon communication, \n\tserver: {serverID}\n\tcommand: {command}\n\ttext: {text}\n\tsend: {send}')
-	mPrint('DEV', f'connection informations: \n\tip: {config["server-ip"]}\n\tpsw: {rconPsw}\n\tport: {server[serverID].rcon}')
+	mPrint('DEV', f'connection informations: \n\tip: {config["server-ip"]}\n\tpsw: {config["rcon-passw"]}\n\tport: {server[serverID].rcon}')
 
 	try:
-		with MCRcon(config['server-ip'], rconPsw, server[serverID].rcon) as mcr:
+		with MCRcon(config['server-ip'], config['rcon-passw'], server[serverID].rcon) as mcr:
 			resp = mcr.command(send)
 			mPrint('RESP', 'server resp: ' + resp)
 	except ConnectionRefusedError:
@@ -1506,8 +1514,8 @@ def inHelp(menu): #detailed command specific helps
 
 	else:
 		rPrint('Aiuti non trovati per questo comando...')
-
-#runtime start#
+# --------------------------------------------------------------------------------------------------------------------------------------------------- #
+#runtime start# NOTE SCRIPT STARTS HERE
 #Preparazione (step 1)
 try:
 	createLog()
@@ -1706,7 +1714,7 @@ def main(run):
 			if command[1] == '-s':
 				rconSync()
 		except IndexError:
-			mPrint('INFO', f'rcon.port: {rconPort}, rcon.password: {rconPsw}')
+			mPrint('INFO', f'rcon.port: {rconPort}, rcon.password: {config["rcon-passw"]}')
 			mPrint('WARN', 'DO NOT MANUALLY CHANGE THEM.') #wtfym fix this FIXME
 
 	elif command[0] == 'log':
@@ -1780,13 +1788,14 @@ def main(run):
 # -------- MAINLOOP --------
 autoBack = False
 seconds = 0 #autobackup (not yet implemented)
+debug_mode = True
 while run:
 	try:
 		resp = main(run)
 		if resp == -2:
 			break
 		elif resp != 0:
-			autoBack = True
+			# autoBack = Trueba
 			startTime = time.time()
 			seconds = int(resp)*60
 		elif resp == 0 and autoBack == True:
@@ -1802,7 +1811,10 @@ while run:
 		prtStackTrace()
 		print(f'Il manager è crashato, guarda il log per informazioni.')
 		input('Premi invio per uscire')
-		exit()
+		if debug_mode:
+			continue
+		else:
+			exit()
 
 
 # __    __  __    __    _____    ____  _   _  ____  ___     ___  _____  ____  ____    ___  __  __  ___  _  _  ___ 
