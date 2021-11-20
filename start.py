@@ -1,7 +1,4 @@
 # TODO FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW, NB, BUG, QUESTION, COMBAK, TEMP, DEBUG, OPTIMIZE
-from colorama.ansi import Back
-
-
 try:
 	import os
 	import subprocess
