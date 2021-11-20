@@ -774,24 +774,18 @@ def dirGrab(isStart = True): #Returns a list containing server folders in alphab
 		mPrint('WORK', 'Scanning for server.properties')
 		#Controllo se c'è un server.properties
 		x = 0
-		for x in range(len(dirs)):
+		while x < len(dirs):
 			if dirs[x] == 'backups':
-				dirs[x] = 'REMOVEME()' #placeholder
-				continue
+				dirs.pop(x)
+				x-=1
 
 			if(os.path.isfile(dirs[x]+r'\server.properties') == False) and (os.path.isfile(dirs[x]+r'\config.yml') == False):
 				mPrint('WORK', 'Found non-server dir:')
 				rPrint('\t| dir: '+dirs[x], True)
 				rPrint('\t| x  : '+str(x), True)
-				dirs[x] = 'REMOVEME()'
-				
-		for x in range(len(dirs)): #elimino dalla lista le cartelle che non hanno il server.properties
-			mPrint('WORK', 'Checking REMOVEME at index: ' + str(x))
-			mPrint('WORK', 'dirs[x]: ' + str(dirs[x]))
-			if(dirs[x] == 'REMOVEME()'):
 				dirs.pop(x)
 				x-=1
-				mPrint('WORK', 'popped at x: ' + str(x))
+			x += 1
 
 			
 	mPrint('DEV', 'dirGrab()->dirs: ')
