@@ -787,7 +787,18 @@ def dirGrab(isStart = True): #Returns a list containing server folders in alphab
 				x-=1
 			x += 1
 
-			
+	if(Servers.serverCount != 0):
+		if(len(dirs) > Servers.serverCount): #new server added
+			x = 0
+			while x < len(dirs): #FIXME 0	BUG 
+				if (server[x].name in dirs): #server exist in server[]
+					x+=1
+				else: #server doesn't exist server[]
+					server.insert(x, Servers(dirs[x], 0, config['server-port'], config['server-rcon']))
+
+		elif(len(dirs) < Servers.serverCount): #server removed
+			pass
+
 	mPrint('DEV', 'dirGrab()->dirs: ')
 	mPrint('DEV', dirs)
 	#Ritorno una lista di directory elaborate

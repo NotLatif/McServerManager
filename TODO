@@ -21,6 +21,7 @@
 - TODO 0
 
 # FIXME
+- FIXME 0 `server[x].name in dirs` checks if server exits in dirs (but I want the opposite: check if dirs[x] exists in server[])
 - FIXME 1
 - FIXME 2 multithreading excuse
 - FIXME 3 autobackup function implement
