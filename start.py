@@ -1581,6 +1581,9 @@ rPrint('| - Premi \'h\' per la lista dei comandi    |')
 rPrint('| Creato da Latif                         |')
 mPrint('INFO', f'| Puoi aprire {maxServers} server, usa \'info\' per informazioni')
 
+for x in server:
+	print(x.rcon)
+
 #cmds: bottom of function
 def main(run):
 	global log
