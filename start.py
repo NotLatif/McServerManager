@@ -787,17 +787,26 @@ def dirGrab(isStart = True): #Returns a list containing server folders in alphab
 				x-=1
 			x += 1
 
-	if(Servers.serverCount != 0):
-		if(len(dirs) > Servers.serverCount): #new server added
-			x = 0
-			while x < len(dirs): #FIXME 0	BUG 
-				if (server[x].name in dirs): #server exist in server[]
-					x+=1
-				else: #server doesn't exist server[]
-					server.insert(x, Servers(dirs[x], 0, config['server-port'], config['server-rcon']))
+	#BUG BUG BUG BUG BUG BUG
+	# if(Servers.serverCount != 0 or len(dirs) != Servers.serverCount):	#How swappable servers
+	# 	tmpServerNames = [server[x].name for x in range(Servers.serverCount)]
+	# 	found = {}
+	# 	dirs = dirGrab()
 
-		elif(len(dirs) < Servers.serverCount): #server removed
-			pass
+	# 	for x in range(len(tmpServerNames)): #server was removed
+	# 		if(tmpServerNames[x] not in dirs):
+	# 			found[x] = [tmpServerNames[x], 'rem']
+
+	# 	y=len(dirs)	
+	# 	for x in range(len(dirs)): #server was added
+	# 		if(dirs[x] not in tmpServerNames):
+	# 			found[x+y] = [dirs[x], 'add']
+
+	# 	for x in range(len(found)):
+	# 		if found[x][1] == 'rem':
+	# 			del server[x]
+	# 		elif found[x][1] == 'add':
+	# 			server.insert(x, Servers(found[x][0], 0, config['server-port'], config['rcon-port']))
 
 	mPrint('DEV', 'dirGrab()->dirs: ')
 	mPrint('DEV', dirs)
