@@ -486,8 +486,22 @@ def verifyStatus(serverID): #checks if server has succesfully started pinging th
 		else:
 			mPrint('ERROR', 'Server non trovato.')
 
+def serverListReload():
+	openPorts = {x: server[x].rcon for x in range(Servers.serverCount) if server[x].state == 1}
+	server.clear()
+	mPrint('WARN', f'OPEN PORTS: {openPorts}')
+	loadServers()
+	if openPorts == {}:
+		return
+	#else
+	print(Servers.serverCount)
+
+	for x in openPorts:
+		check(x, openPorts[x])
+
 def loadServers(): #scans the directory and adds the servers in the server[] List as objects -> server[Servers s1, Servers s2, ...] 
 	mPrint('FUNC', f'loadServers()')
+	Servers.serverCount = 0
 	s = dirGrab()
 	x = 0
 	for serverName in s:
@@ -788,25 +802,9 @@ def dirGrab(isStart = True): #Returns a list containing server folders in alphab
 			x += 1
 
 	#BUG BUG BUG BUG BUG BUG
-	# if(Servers.serverCount != 0 or len(dirs) != Servers.serverCount):	#How swappable servers
-	# 	tmpServerNames = [server[x].name for x in range(Servers.serverCount)]
-	# 	found = {}
-	# 	dirs = dirGrab()
-
-	# 	for x in range(len(tmpServerNames)): #server was removed
-	# 		if(tmpServerNames[x] not in dirs):
-	# 			found[x] = [tmpServerNames[x], 'rem']
-
-	# 	y=len(dirs)	
-	# 	for x in range(len(dirs)): #server was added
-	# 		if(dirs[x] not in tmpServerNames):
-	# 			found[x+y] = [dirs[x], 'add']
-
-	# 	for x in range(len(found)):
-	# 		if found[x][1] == 'rem':
-	# 			del server[x]
-	# 		elif found[x][1] == 'add':
-	# 			server.insert(x, Servers(found[x][0], 0, config['server-port'], config['rcon-port']))
+	#How swappable servers
+	if(len(dirs) != len(server) and len(server) != 0):
+		serverListReload()
 
 	mPrint('DEV', 'dirGrab()->dirs: ')
 	mPrint('DEV', dirs)
@@ -826,7 +824,12 @@ def ls(): #lists the server that the script has found
 		else:
 			pre = Fore.RESET
 			aft = ''
-		rPrint(f'{pre}{x}|-> {server[x].name} {aft}{Fore.RESET}')
+		if(config['log']):
+			aft2 = f' - DEV:{server[x].port}, {server[x].rcon}'
+		else:
+			aft2 = '' 
+			
+		rPrint(f'{pre}{x}|-> {server[x].name} {aft}{Fore.RESET}{aft2}')
 		count += 1
 	print('\n')
 
@@ -1216,7 +1219,7 @@ def check(param, port=0): #Add command 'check [port|id|-f]' default: 25565 check
 			ls()
 			
 			while True:
-				s = input('[id]> ')
+				s = int(input('[id]> '))
 				if check(s) != -1:
 					if not Servers.isAlive(config['server-ip'], server[s].rcon):
 						mPrint('ERROR', 'La porta rcon non è disponibile, perfavore riavvia il server per evitare problemi.')
@@ -1741,8 +1744,19 @@ def main(run):
 		mPrint('INFO', 'log is now: ' + str(log))
 
 	elif command[0] == 'end':
-		#TODO 0 CHECK ARE THERE ONLINE SERVERS?
-		crash()
+		res = ''
+		for s in server:
+			if s.state == 1:
+				mPrint('WARN', f'Server: {s.name} is still online! Do you want to quit anyways?')
+				mPrint('INFO', f'type: [y] for yes  /  [n] for no  /  [Y] for Yes to All')
+				res = input('(?) > ')
+				if(res.lower() == 'n'):
+					continue
+				elif(res == 'Y'):
+					crash()
+		if(res.lower() != 'n'):
+			crash()
+		
 
 	elif command[0] == 'h' or command[0] == 'help' or command[0] == '?':
 		help()

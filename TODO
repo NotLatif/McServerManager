@@ -1,3 +1,8 @@
+# LEGENDA
+✔ Done
+⭐ priority
+❌ Won't do (could be revisited)
+
 # TODO
 - ✔ Maybe change online dict to class? could benefit i think
 - ✔ When script crashes it should JUST CRASH, why keep it alive? print crashlog and let it crash.
@@ -6,19 +11,20 @@
 - ✔ makeBackup() works properly
 - ✔ RCON PASSWORD IS ALWAYS THE SAME WTF BRO CHANGE CHANGE
 - ✔ check placeholder.bat when starting 
+- ✔ hot add server
+- ⭐⭐⭐⭐⭐⭐ STARTING >1 SERVER DOES NOT UPDATE server.properties FIX ASAP
 - ⭐⭐⭐⭐automate first server start
-- ⭐⭐⭐hot add server
-- ⭐⭐⭐config[] is an hassle to manage... maybe class???
-- ⭐⭐add per-server settings
+- ⭐⭐⭐⭐⭐rcon.passw should never be printed, fix that
 - ⭐automatically set bungeecord settings (command)
 - ⭐AT startup:
 	- Check if servers are on (fast or threads?)
-    - timeout?
+	- Start autobackup with timer
 - ⭐print something randomly in server if online
-- ⭐check if port is forwarded at startup
 - ⭐add info command
-- dirGrab() function seems to be used A LOT (FIXME 6 could lower the usage), possible BUG: (TESTING *1)
-- TODO 0
+- ⭐[easy] TODO 0 (check if there are online servers before exiting)
+- ❌config[] is an hassle to manage... maybe class???
+- ❌add per-server settings
+- ❌check if port is forwarded at startup
 
 # FIXME
 - FIXME 0 `server[x].name in dirs` checks if server exits in dirs (but I want the opposite: check if dirs[x] exists in server[])
@@ -31,17 +37,19 @@
 - FIXME 10 info on line
 
 # TESTING
-- ⭐⭐⭐what if dirs change runtime? *1
-- ⭐⭐What happens if start.bat is not there
+- ✔ what if dirs change runtime? *1 (added feature: hot swap)
+- ✔ What happens if start.bat is not in zscripts (it is generated at startup)
 - ⭐LOOK THROUGH EVERY FUCKING COMMAND
-- ⭐⭐⭐⭐⭐⭐ start / stop / restart functions
+- ✔ start / stop / restart functions
 - ⭐⭐ Stopping Server1 sometimes halts until you enter in game console
 - ✔ `in server[i]` syntax
 
 # CODE REVIEW
+- check(id, port)
 - printOnline() and listOnline() with ls()
 - sendRcon()
 - verifyStatus()
+- dirGrab() function seems to be used A LOT (FIXME 6 could lower the usage), possible BUG: (TESTING *1)
 - batter():
 	- I file che crea vanno bene per lo script ma non sono utilizzabili dall'utente in maniera manuale
 	- Poss. sol:
