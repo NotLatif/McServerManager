@@ -15,6 +15,7 @@
 - ⭐⭐⭐⭐⭐⭐ STARTING >1 SERVER DOES NOT UPDATE server.properties FIX ASAP
 - ⭐⭐⭐⭐automate first server start
 - ⭐⭐⭐⭐⭐rcon.passw should never be printed, fix that
+- ⭐add per-server settings
 - ⭐automatically set bungeecord settings (command)
 - ⭐AT startup:
 	- Check if servers are on (fast or threads?)
@@ -22,8 +23,6 @@
 - ⭐print something randomly in server if online
 - ⭐add info command
 - ⭐[easy] TODO 0 (check if there are online servers before exiting)
-- ❌config[] is an hassle to manage... maybe class???
-- ❌add per-server settings
 - ❌check if port is forwarded at startup
 
 # FIXME
