@@ -1,4 +1,7 @@
+-Currently abandoned-
+
 # IMPORTANT
+
 ### Script is incomplete / WIP
 This was an old project I found interesting so I'm trying to revive it
 Do not fully rely on this for features such as backup yet.
